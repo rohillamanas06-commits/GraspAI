@@ -1,0 +1,33 @@
+# StudyAgent — Python dependencies
+# Install: pip install -r requirements.txt
+
+# ── Web framework
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# ── Database — PostgreSQL (Neon)
+psycopg2-binary>=2.9.9
+
+# ── PDF parsing
+pdfplumber>=0.11.0
+
+# ── NLP — flashcard generation (no external API)
+nltk>=3.8.1
+
+# ── Gemini (syllabus + plan + adapt only)
+google-genai>=1.0.0
+
+# ── Groq (fallback AI)
+groq>=0.9.0
+
+# ── Anki export
+genanki>=0.13.0
+
+# ── Utilities
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+
+python-jose[cryptography]>=3.3.0   # JWT encode/decode
+bcrypt>=4.0.0                       # password hashing (used directly)
+passlib[bcrypt]>=1.7.4             # password hashing
+email-validator>=2.1.0             # validates EmailStr in Pydantic

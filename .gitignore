@@ -1,0 +1,9 @@
+.env
+/__pycache__
+/dist
+/build
+/node_modules
+/.tanstack
+/.vscode
+/venv
+/tmp
