@@ -84,6 +84,17 @@ bearer_scheme = HTTPBearer()
 # DATABASE — PostgreSQL (Neon)
 # ─────────────────────────────────────────────
 
+# ── Razorpay Config ──────────────────────────────────────────
+import razorpay
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+# Credit packages - pricing in rupees
+CREDIT_PACKAGES = [
+    {'id': 'starter', 'name': 'Starter Pack', 'price': 50, 'credits': 20, 'currency': 'INR'},
+    {'id': 'professional', 'name': 'Professional Pack', 'price': 100, 'credits': 50, 'currency': 'INR'},
+]
+
 def get_db():
     """
     Yield a psycopg2 connection per request.
@@ -111,9 +122,15 @@ def init_db():
             created_at    TEXT NOT NULL,
             last_login    TEXT,
             streak_days   INTEGER DEFAULT 0,
-            last_studied  TEXT
+            last_studied  TEXT,
+            credits       INTEGER DEFAULT 5
         );
     """)
+
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 5;")
+    except Exception:
+        conn.rollback()
 
     # ── Refresh tokens (blacklist-capable) ────────────────────────────────────
     cur.execute("""
@@ -124,6 +141,38 @@ def init_db():
             revoked       BOOLEAN DEFAULT FALSE
         );
     """)
+
+    # ── Payment Orders ────────────────────────────────────────────────────────
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS payment_orders (
+            id                  TEXT PRIMARY KEY,
+            user_id             TEXT NOT NULL,
+            razorpay_order_id   TEXT UNIQUE NOT NULL,
+            razorpay_payment_id TEXT UNIQUE,
+            amount              INTEGER NOT NULL,
+            credits             INTEGER NOT NULL,
+            status              TEXT NOT NULL,
+            created_at          TEXT NOT NULL,
+            completed_at        TEXT
+        );
+    """)
+
+    # Migrate payment_orders if it was created with an older schema
+    for col_def in [
+        "razorpay_order_id TEXT",
+        "razorpay_payment_id TEXT",
+        "amount INTEGER DEFAULT 0",
+        "credits INTEGER DEFAULT 0",
+        "status TEXT DEFAULT 'created'",
+        "created_at TEXT",
+        "completed_at TEXT",
+    ]:
+        col_name = col_def.split()[0]
+        try:
+            cur.execute(f"ALTER TABLE payment_orders ADD COLUMN IF NOT EXISTS {col_def};")
+        except Exception:
+            conn.rollback()
+
 
     # ── Sessions (now user-owned) ─────────────────────────────────────────────
     cur.execute("""
@@ -353,6 +402,7 @@ class UserOut(BaseModel):
     created_at: str
     streak_days: int
     last_login: Optional[str]
+    credits: int = 5
 
 # ─────────────────────────────────────────────
 # ─────────────────────────────────────────────
@@ -930,6 +980,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
         created_at=str(current_user["created_at"]),
         streak_days=int(current_user.get("streak_days") or 0),
         last_login=str(current_user.get("last_login")) if current_user.get("last_login") else None,
+        credits=int(current_user.get("credits") if current_user.get("credits") is not None else 5),
     )
 
 
@@ -1078,6 +1129,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "streak_days": current_user.get("streak_days") or 0,
             "last_studied": current_user.get("last_studied"),
             "member_since": str(current_user["created_at"])[:10],
+            "credits": int(current_user.get("credits") if current_user.get("credits") is not None else 5),
         },
         "aggregate": {
             "total_sessions": len(sessions_raw),
@@ -1213,6 +1265,10 @@ async def upload_syllabus(
     - Gemini parses topics/subtopics/difficulty into structured JSON
     - Returns session_id used in all subsequent calls
     """
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required to start a new session.")
+
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
@@ -1280,6 +1336,7 @@ Syllabus text:
         "VALUES (%s, %s, %s, %s, %s, %s)",
         (session_id, current_user["id"], session_name, now, raw_text, json.dumps(topics_data))
     )
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
     db.commit()
     cur.close()
 
@@ -1333,11 +1390,12 @@ Input:
 
 Rules:
 1. Hard topics and weak subjects get more days
-2. Each day should have 1-3 topics maximum (depending on hours)
-3. Estimated hours per topic: easy=1h, medium=1.5h, hard=2h
-4. Do not exceed daily_hours per day
-5. Last 2 days must be revision days (topics = ["Full Revision", "Mock Test"])
-6. Distribute topics so nothing is crammed on day 1
+2. Each day should have 1-3 topics maximum. If you don't have enough days, you MUST cram more topics per day to finish within the available days.
+3. Estimated hours per topic: easy=1h, medium=1.5h, hard=2h. Reduce these estimates if time is short.
+4. Try not to exceed daily_hours per day, but if days are limited, you MUST exceed it to fit all topics within {study_days} days.
+5. Last 2 days must be revision days (topics = ["Full Revision", "Mock Test"]). If there are only 2 days or fewer available total, skip revision and just fit the topics.
+6. CRITICAL: The plan MUST be exactly {days_available} days long, starting from {date.today().isoformat()} and ending on or before {req.exam_date.isoformat()}. NEVER generate more than {days_available} days.
+
 
 Return JSON:
 {{
@@ -1401,6 +1459,10 @@ def generate_past_papers(
     current_user: dict = Depends(get_current_user)
 ):
     """Generate realistic past paper questions for Indian exams using Gemini/Groq."""
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required to generate past papers.")
+
     row = get_session_for_user(db, session_id, current_user["id"])
     topics_json = row.get("topics_json")
     
@@ -1437,6 +1499,11 @@ Return ONLY a JSON object with this exact structure:
         raise HTTPException(status_code=500, detail="LLM returned empty questions array.")
         
     save_session_field(db, session_id, "past_papers_json", json.dumps(questions_data))
+    
+    cur = db.cursor()
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
     
     return PastPapersResponse(
         session_id=session_id,
@@ -2266,6 +2333,144 @@ def root():
     }
 
 
+# ─────────────────────────────────────────────
+# PAYMENTS / CREDITS (Razorpay)
+# ─────────────────────────────────────────────
+
+def get_razorpay_client():
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    _orig_update = client._update_user_agent_header
+    def _patched_update_user_agent_header(options):
+        options = _orig_update(options)
+        if "headers" in options and "User-Agent" in options["headers"]:
+            options["headers"]["User-Agent"] = options["headers"]["User-Agent"].strip()
+        return options
+    client._update_user_agent_header = _patched_update_user_agent_header
+    return client
+
+class CreateOrderRequest(BaseModel):
+    package_id: str
+
+class VerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+@app.get("/api/credits/packages", tags=["Payments"])
+def get_credit_packages():
+    """Get available credit packages."""
+    return {
+        "packages": CREDIT_PACKAGES,
+        "currency": "INR"
+    }
+
+@app.post("/api/payments/create-order", tags=["Payments"])
+def create_payment_order(req: CreateOrderRequest, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Create a Razorpay payment order for credit purchase."""
+    package = next((p for p in CREDIT_PACKAGES if p["id"] == req.package_id), None)
+    if not package:
+        raise HTTPException(status_code=400, detail="Invalid package")
+    
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(status_code=500, detail="Payment service not configured")
+    
+    try:
+        client = get_razorpay_client()
+        amount_paise = package["price"] * 100
+        
+        razorpay_order = client.order.create({
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": f"order_{current_user['id'][:8]}_{int(datetime.now().timestamp())}",
+            "payment_capture": 1
+        })
+        
+        # Store payment order in database
+        import uuid
+        order_internal_id = str(uuid.uuid4())
+        
+        cur = db.cursor()
+        cur.execute("""
+            INSERT INTO payment_orders 
+            (id, user_id, razorpay_order_id, amount, credits, status, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            order_internal_id,
+            current_user["id"],
+            razorpay_order["id"],
+            amount_paise,
+            package["credits"],
+            "created",
+            datetime.now(timezone.utc).isoformat()
+        ))
+        db.commit()
+        cur.close()
+        
+        return {
+            "order_id": razorpay_order["id"],
+            "amount": amount_paise,
+            "currency": "INR",
+            "key_id": RAZORPAY_KEY_ID,
+            "package": package
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/payments/verify", tags=["Payments"])
+def verify_payment(req: VerifyPaymentRequest, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Verify Razorpay payment and credit user's account."""
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(status_code=500, detail="Payment service not configured")
+    
+    cur = db.cursor()
+    cur.execute("SELECT * FROM payment_orders WHERE razorpay_order_id = %s AND user_id = %s", 
+                (req.razorpay_order_id, current_user["id"]))
+    payment_order = cur.fetchone()
+    
+    if not payment_order:
+        cur.close()
+        raise HTTPException(status_code=404, detail="Payment order not found")
+        
+    if payment_order["status"] == "completed":
+        cur.close()
+        return {"message": "Payment already verified", "credits_added": 0}
+        
+    import hmac
+    import hashlib
+    
+    verify_string = f"{req.razorpay_order_id}|{req.razorpay_payment_id}"
+    expected_signature = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        verify_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    if expected_signature != req.razorpay_signature:
+        cur.execute("UPDATE payment_orders SET status = 'failed' WHERE id = %s", (payment_order["id"],))
+        db.commit()
+        cur.close()
+        raise HTTPException(status_code=400, detail="Payment verification failed")
+        
+    # Mark completed and add credits
+    cur.execute("""
+        UPDATE payment_orders 
+        SET razorpay_payment_id = %s, status = 'completed', completed_at = %s 
+        WHERE id = %s
+    """, (req.razorpay_payment_id, datetime.now(timezone.utc).isoformat(), payment_order["id"]))
+    
+    cur.execute("""
+        UPDATE users SET credits = credits + %s WHERE id = %s
+    """, (payment_order["credits"], current_user["id"]))
+    
+    db.commit()
+    cur.close()
+    
+    return {
+        "message": "Payment verified successfully",
+        "credits_added": payment_order["credits"]
+    }
+
 if __name__ == "__main__":
     import uvicorn
     import sys
@@ -2274,4 +2479,4 @@ if __name__ == "__main__":
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("backend:app", host="127.0.0.1", port=8000, reload=True)

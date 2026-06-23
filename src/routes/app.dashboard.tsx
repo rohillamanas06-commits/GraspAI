@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee } from "lucide-react";
+import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee, Coins } from "lucide-react";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — GraspAI" }] }),
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/app/dashboard")({
 });
 
 interface DashboardData {
-  user: { full_name: string | null; email: string; streak_days: number; member_since: string };
+  user: { full_name: string | null; email: string; streak_days: number; member_since: string; credits: number };
   aggregate: { total_sessions: number; total_cards: number; total_topics_mastered: number; cards_this_week: number; streak_days: number };
   velocity_chart: { date: string; cards: number }[];
   sessions: Array<{
@@ -27,6 +29,9 @@ interface DashboardData {
 }
 
 function DashboardPage() {
+  const queryClient = useQueryClient();
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => api<DashboardData>("/api/dashboard"),
@@ -40,11 +45,20 @@ function DashboardPage() {
 
   return (
     <div className="w-full space-y-8 px-6 py-10">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Welcome back{data.user.full_name ? `, ${data.user.full_name.split(" ")[0]}` : ""}.
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Member since {data.user.member_since}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight">
+            Welcome back{data.user.full_name ? `, ${data.user.full_name.split(" ")[0]}` : ""}.
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Member since {data.user.member_since}</p>
+        </div>
+        <button 
+          onClick={() => setIsBuyModalOpen(true)}
+          className="flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:scale-105 transition-all cursor-pointer"
+        >
+          <Coins className="h-4 w-4" />
+          <span>{data.user.credits}</span>
+        </button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -129,6 +143,16 @@ function DashboardPage() {
           </div>
         )}
       </div>
+      
+      <BuyCreditsModal 
+        isOpen={isBuyModalOpen}
+        onClose={() => setIsBuyModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+          queryClient.invalidateQueries({ queryKey: ["user"] });
+        }}
+        currentCredits={data.user.credits}
+      />
     </div>
   );
 }

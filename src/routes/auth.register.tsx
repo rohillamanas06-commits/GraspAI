@@ -37,7 +37,7 @@ function RegisterPage() {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Start turning syllabi into adaptive plans."
+      subtitle="Start turning syllabus into adaptive plans."
       footer={
         <>
           Already have an account?{" "}

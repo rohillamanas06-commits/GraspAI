@@ -8,6 +8,7 @@ export interface User {
   created_at: string;
   streak_days: number;
   last_login: string | null;
+  credits: number;
 }
 
 interface AuthCtx {

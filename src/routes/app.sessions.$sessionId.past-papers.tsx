@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Loader2, FileQuestion, RefreshCw, ChevronDown, ChevronUp, Trash2, Coffee } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 export const Route = createFileRoute("/app/sessions/$sessionId/past-papers")({
   head: () => ({ meta: [{ title: "AI Past Papers — GraspAI" }] }),
@@ -28,6 +30,8 @@ function PastPapersPage() {
   const [examType, setExamType] = useState("NEET");
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const { refresh, user } = useAuth();
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
   const { data: pastPapers, isLoading: isLoadingPapers } = useQuery({
     queryKey: ["past-papers", sessionId],
@@ -43,6 +47,7 @@ function PastPapersPage() {
       });
       toast.success("Past papers generated successfully!");
       await qc.invalidateQueries({ queryKey: ["past-papers", sessionId] });
+      await refresh();
     } catch (e: any) {
       toast.error(e.message || "Failed to generate past papers.");
     } finally {
@@ -110,8 +115,12 @@ function PastPapersPage() {
             </div>
             
             <div>
-              <Button onClick={handleGenerate} disabled={isGenerating || isLoadingPapers}>
-                {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Questions"}
+              <Button 
+                onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : handleGenerate())} 
+                disabled={(user?.credits !== 0 && (isGenerating || isLoadingPapers))}
+                variant={user?.credits === 0 ? "secondary" : "default"}
+              >
+                {user?.credits === 0 ? "Credits finished (Buy more)" : isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Questions (Costs 1 Credit)"}
               </Button>
             </div>
           </CardContent>
@@ -122,11 +131,16 @@ function PastPapersPage() {
             <h2 className="text-xl font-semibold">Generated Questions</h2>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => {
-                if (confirm("This will overwrite your existing questions. Continue?")) {
+                if (user?.credits === 0) {
+                  setIsBuyModalOpen(true);
+                  return;
+                }
+                if (confirm("This will overwrite your existing questions and cost 1 credit. Continue?")) {
                   handleGenerate();
                 }
               }} disabled={isGenerating}>
-                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><RefreshCw className="mr-2 h-4 w-4" /> Regenerate</>}
+                <RefreshCw className={`h-4 w-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                {user?.credits === 0 ? "Credits finished" : "Regenerate"}
               </Button>
               <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10" onClick={handleReset} disabled={isGenerating} title="Reset Past Papers">
                 <Trash2 className="h-4 w-4" />
@@ -167,6 +181,12 @@ function PastPapersPage() {
           </div>
         </div>
       )}
+      <BuyCreditsModal 
+        isOpen={isBuyModalOpen} 
+        onClose={() => setIsBuyModalOpen(false)} 
+        onSuccess={() => refresh()} 
+        currentCredits={user?.credits || 0} 
+      />
     </div>
   );
 }

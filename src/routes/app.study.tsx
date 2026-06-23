@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Check, X, SkipForward, Upload, Download, Pencil } from "lucide-react";
 import { CoffeeLoading } from "@/components/ui/coffee-loading";
+import { useAuth } from "@/lib/auth";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 export const Route = createFileRoute("/app/study")({
   head: () => ({ meta: [{ title: "Study Agent — GraspAI" }] }),
@@ -176,6 +178,8 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const { refresh, user } = useAuth();
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
   const submit = async () => {
     if (!file) return toast.error("Choose a PDF first");
@@ -187,6 +191,7 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
       const r = await api<any>(url, { method: "POST", body: fd, isForm: true });
       toast.success(`Extracted ${r.total_topics} topics`);
       onCreated(r.session_id);
+      await refresh();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -210,10 +215,21 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
             <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </label>
         </div>
-        <Button onClick={submit} disabled={!file || loading} className="w-full">
-          {loading ? "Extracting topics…" : "Upload & extract"}
+        <Button 
+          onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : submit())} 
+          disabled={(user?.credits !== 0 && !file) || loading} 
+          className="w-full"
+          variant={user?.credits === 0 ? "secondary" : "default"}
+        >
+          {user?.credits === 0 ? "Credits finished (Buy more)" : loading ? "Extracting topics…" : "Upload & extract (Costs 1 Credit)"}
         </Button>
       </CardContent>
+      <BuyCreditsModal 
+        isOpen={isBuyModalOpen} 
+        onClose={() => setIsBuyModalOpen(false)} 
+        onSuccess={() => refresh()} 
+        currentCredits={user?.credits || 0} 
+      />
     </Card>
   );
 }
