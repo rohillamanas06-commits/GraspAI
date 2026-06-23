@@ -5,7 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Monitor } from "lucide-react";
 
 import "../styles.css";
@@ -81,23 +81,42 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const ua = navigator.userAgent;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const isMobileScreen = Math.min(window.screen.width, window.screen.height) < 1024;
+      const isSpoofedDesktop = isTouch && isMobileScreen;
+      
+      setIsMobile(isMobileUA || isSpoofedDesktop || window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white p-8 text-black sm:hidden">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-900">
-              <Monitor className="h-8 w-8" />
+          {isMobile && (
+            <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white p-8 text-black">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-900">
+                <Monitor className="h-8 w-8" />
+              </div>
+              <h2 className="mb-3 text-center text-2xl font-bold tracking-tight">
+                Desktop Experience Only
+              </h2>
+              <p className="text-center text-base leading-relaxed text-zinc-600 max-w-[280px]">
+                GraspAI is carefully designed for larger screens. For the best study experience, please access this application from your laptop or desktop computer.
+              </p>
             </div>
-            <h2 className="mb-3 text-center text-2xl font-bold tracking-tight">
-              Desktop Experience Only
-            </h2>
-            <p className="text-center text-base leading-relaxed text-zinc-600 max-w-[280px]">
-              GraspAI is carefully designed for larger screens. For the best study experience, please access this application from your laptop or desktop computer.
-            </p>
-          </div>
-          <Outlet />
+          )}
+          {!isMobile && <Outlet />}
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
