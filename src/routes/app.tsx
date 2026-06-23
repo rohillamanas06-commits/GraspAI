@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/lib/auth";
+import { CoffeeLoading } from "@/components/ui/coffee-loading";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -19,7 +20,7 @@ function AppLayout() {
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
-        Loading…
+        <CoffeeLoading text="Loading your space..." />
       </div>
     );
   }

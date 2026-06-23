@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Check, X, SkipForward, Upload, Download, Pencil } from "lucide-react";
+import { CoffeeLoading } from "@/components/ui/coffee-loading";
 
 export const Route = createFileRoute("/app/study")({
   head: () => ({ meta: [{ title: "Study Agent — GraspAI" }] }),
@@ -332,9 +333,8 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
         <CardHeader><CardTitle className="text-base font-medium">Schedule</CardTitle></CardHeader>
         <CardContent>
           {loading || isPlanLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm text-muted-foreground">Brewing your perfect study schedule...</p>
+            <div className="py-12">
+              <CoffeeLoading text="Brewing your perfect study schedule..." />
             </div>
           ) : !planData?.plan ? (
             <p className="text-sm text-muted-foreground">No plan yet. Set your exam date and generate one.</p>
@@ -473,9 +473,8 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
       </CardHeader>
       <CardContent className="space-y-4">
         {loading || isCardsLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-sm text-muted-foreground">Brewing your flashcards...</p>
+          <div className="py-12">
+            <CoffeeLoading text="Brewing your flashcards..." />
           </div>
         ) : !data?.cards ? (
           <p className="text-sm text-muted-foreground">No flashcards yet.</p>
@@ -591,21 +590,30 @@ function AdaptPanel({ sessionId, onDone }: { sessionId: string; onDone: () => vo
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base font-medium">Adapt plan to your feedback</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          Adapt plan to your feedback
+          <span className="text-sm font-normal text-muted-foreground">(optional)</span>
+        </CardTitle>
+      </CardHeader>
       <CardContent className="space-y-4">
         {isSessionLoading || isPlanLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-sm text-muted-foreground">Loading your adapted plan...</p>
+          <div className="py-12">
+            <CoffeeLoading text="Loading your adapted plan..." />
           </div>
         ) : !isAdapted ? (
           <>
             <p className="text-sm text-muted-foreground">
               The agent reads all your flashcard feedback and rewrites your plan — more days for hard topics, compress easy ones, dedicated re-study days for skipped topics.
             </p>
-            <Button onClick={adapt} disabled={loading} className="w-full">
-              {loading ? "Rewriting plan…" : "Adapt plan"}
-            </Button>
+            <div className="flex gap-3 mt-4">
+              <Button onClick={adapt} disabled={loading} className="w-full">
+                {loading ? "Rewriting plan…" : "Adapt plan"}
+              </Button>
+              <Button variant="secondary" onClick={onDone} disabled={loading} className="w-full">
+                Skip to export
+              </Button>
+            </div>
           </>
         ) : (
           <div className="space-y-6">
