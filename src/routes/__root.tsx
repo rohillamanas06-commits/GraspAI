@@ -6,6 +6,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Monitor } from "lucide-react";
 
 import "../styles.css";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -85,6 +86,17 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white p-8 text-black sm:hidden">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-900">
+              <Monitor className="h-8 w-8" />
+            </div>
+            <h2 className="mb-3 text-center text-2xl font-bold tracking-tight">
+              Desktop Experience Only
+            </h2>
+            <p className="text-center text-base leading-relaxed text-zinc-600 max-w-[280px]">
+              GraspAI is carefully designed for larger screens. For the best study experience, please access this application from your laptop or desktop computer.
+            </p>
+          </div>
           <Outlet />
         </AuthProvider>
       </ThemeProvider>
