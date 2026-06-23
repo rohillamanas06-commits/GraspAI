@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Flame, BookOpenCheck, Layers, CalendarDays } from "lucide-react";
+import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee } from "lucide-react";
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — GraspAI" }] }),
@@ -78,8 +78,12 @@ function DashboardPage() {
         <h2 className="mb-4 text-lg font-medium tracking-tight">Your sessions</h2>
         {data.sessions.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center gap-3 py-12 text-center text-muted-foreground">
-              <p className="text-lg font-medium">No sessions yet</p>
+            <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+              <Coffee className="h-12 w-12 text-muted-foreground/40" strokeWidth={1.5} />
+              <div className="space-y-1">
+
+                <p className="text-sm">You haven't started any study sessions yet.</p>
+              </div>
             </CardContent>
           </Card>
         ) : (

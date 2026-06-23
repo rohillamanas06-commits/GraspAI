@@ -807,8 +807,8 @@ def register(req: RegisterRequest, db=Depends(get_db)):
     user_id = generate_user_id()
     now = datetime.now(timezone.utc).isoformat()
     cur.execute(
-        "INSERT INTO users (id, email, password_hash, full_name, created_at) VALUES (%s, %s, %s, %s, %s)",
-        (user_id, req.email, hash_password(req.password), req.full_name, now)
+        "INSERT INTO users (id, email, password_hash, name, full_name, created_at) VALUES (%s, %s, %s, %s, %s, %s)",
+        (user_id, req.email, hash_password(req.password), req.full_name, req.full_name, now)
     )
 
     access_token   = create_access_token(user_id)
