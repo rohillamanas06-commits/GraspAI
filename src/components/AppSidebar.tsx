@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee } from "lucide-react";
+import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee, Leaf } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -80,9 +80,9 @@ export function AppSidebar() {
       <SidebarFooter className="pb-6 sm:pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "light" ? "Cafe mode" : "Light mode"}>
-              {theme === "light" ? <Coffee className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              {!collapsed && <span>{theme === "light" ? "Cafe mode" : "Light mode"}</span>}
+            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "mocha" ? "Latte mode" : "Mocha mode"}>
+              {theme === "mocha" ? <Leaf className="h-4 w-4" /> : <Coffee className="h-4 w-4" />}
+              {!collapsed && <span>{theme === "mocha" ? "Latte mode" : "Mocha mode"}</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
           {!collapsed && user && (
