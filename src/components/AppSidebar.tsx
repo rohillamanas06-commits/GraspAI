@@ -80,9 +80,9 @@ export function AppSidebar() {
       <SidebarFooter className="pb-6 sm:pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "dark" ? "Light mode" : "Dark mode"}>
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {!collapsed && <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>}
+            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "light" ? "Cafe mode" : "Light mode"}>
+              {theme === "light" ? <Coffee className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {!collapsed && <span>{theme === "light" ? "Cafe mode" : "Light mode"}</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
           {!collapsed && user && (

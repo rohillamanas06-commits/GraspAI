@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import { Check, X, SkipForward, Upload, Download, Pencil } from "lucide-react";
 import { CoffeeLoading } from "@/components/ui/coffee-loading";
 import { useAuth } from "@/lib/auth";

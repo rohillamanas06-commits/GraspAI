@@ -1,22 +1,29 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "cafe";
 const Ctx = createContext<{ theme: Theme; toggle: () => void } | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("cafe");
 
   useEffect(() => {
-    const saved = (typeof window !== "undefined" && localStorage.getItem("grasp_theme")) as Theme | null;
-    const initial: Theme = saved || "light";
+    let saved = (typeof window !== "undefined" && localStorage.getItem("grasp_theme")) as string | null;
+    if (saved === "dark") saved = "cafe"; // migrate old dark users to cafe
+    const initial: Theme = (saved as Theme) || "cafe";
     setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
+    document.documentElement.classList.remove("dark", "cafe");
+    if (initial !== "light") {
+      document.documentElement.classList.add(initial);
+    }
   }, []);
 
   const toggle = () => {
     setTheme((t) => {
-      const next: Theme = t === "dark" ? "light" : "dark";
-      document.documentElement.classList.toggle("dark", next === "dark");
+      const next: Theme = t === "light" ? "cafe" : "light";
+      document.documentElement.classList.remove("dark", "cafe");
+      if (next !== "light") {
+        document.documentElement.classList.add(next);
+      }
       localStorage.setItem("grasp_theme", next);
       return next;
     });
