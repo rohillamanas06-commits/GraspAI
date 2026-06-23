@@ -1029,7 +1029,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
     seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     cur.execute(
         "SELECT created_at, cards_count FROM study_events "
-        "WHERE user_id = %s AND created_at >= %s ORDER BY created_at",
+        "WHERE user_id = %s AND event_type = 'feedback' AND created_at >= %s ORDER BY created_at",
         (user_id, seven_days_ago)
     )
     events = [dict(r) for r in cur.fetchall()]

@@ -54,7 +54,7 @@ function DashboardPage() {
         </div>
         <button 
           onClick={() => setIsBuyModalOpen(true)}
-          className="flex w-fit items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:scale-105 transition-all cursor-pointer"
+          className="flex w-fit items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-500/30 hover:scale-105 transition-all cursor-pointer"
         >
           <Coins className="h-4 w-4" />
           <span>{data.user.credits}</span>
@@ -73,14 +73,16 @@ function DashboardPage() {
           <CardTitle className="text-base font-medium">Study velocity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end gap-1.5 h-24 sm:gap-3 sm:h-32">
+          <div className="flex items-end gap-1.5 h-24 sm:gap-3 sm:h-32 mt-2">
             {data.velocity_chart.map((d) => (
-              <div key={d.date} className="flex flex-1 flex-col items-center gap-2">
-                <div
-                  className="w-full rounded-t-md bg-primary/80 transition-all"
-                  style={{ height: `${(d.cards / maxV) * 100}%`, minHeight: 4 }}
-                  title={`${d.cards} cards`}
-                />
+              <div key={d.date} className="flex flex-1 flex-col items-center justify-end h-full gap-2">
+                <div className="w-full flex-1 flex items-end">
+                  <div
+                    className="w-full rounded-t-md bg-primary/80 transition-all"
+                    style={{ height: `${(d.cards / maxV) * 100}%`, minHeight: 4 }}
+                    title={`${d.cards} cards`}
+                  />
+                </div>
                 <span className="text-[10px] text-muted-foreground">{d.date.slice(5)}</span>
               </div>
             ))}
