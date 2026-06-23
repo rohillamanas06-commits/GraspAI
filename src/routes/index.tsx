@@ -25,23 +25,23 @@ function Index() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <main className="relative min-h-screen w-full overflow-hidden shrink-0">
-        <nav className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-black px-6 py-4 sm:px-10">
-          <span className="font-serif text-lg tracking-[0.18em] text-white">GRASP AI</span>
+        <nav className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-black px-4 py-3 sm:px-10 sm:py-4">
+          <span className="font-serif text-sm tracking-[0.18em] text-white sm:text-lg">GRASP AI</span>
           {user ? (
             <Link
               to="/app/dashboard"
-              className="group inline-flex items-center gap-2 text-white/90 transition hover:text-white"
+              className="group inline-flex items-center gap-1.5 text-white/90 transition hover:text-white sm:gap-2"
             >
-              <LayoutDashboard className="h-4 w-4" strokeWidth={2} />
-              <span className="font-serif text-base tracking-wide">Dashboard</span>
+              <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
+              <span className="font-serif text-xs tracking-wide sm:text-base">Dashboard</span>
             </Link>
           ) : (
             <Link
               to="/auth/login"
-              className="group inline-flex items-center gap-2 text-white/90 transition hover:text-white"
+              className="group inline-flex items-center gap-1.5 text-white/90 transition hover:text-white sm:gap-2"
             >
-              <LogIn className="h-4 w-4" strokeWidth={2} />
-              <span className="font-serif text-base tracking-wide">Sign In</span>
+              <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2} />
+              <span className="font-serif text-xs tracking-wide sm:text-base">Sign In</span>
             </Link>
           )}
         </nav>

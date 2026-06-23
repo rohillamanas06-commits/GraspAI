@@ -40,25 +40,25 @@ function SessionPage() {
   const fb = data.feedback_distribution || { too_easy: 0, too_hard: 0, skip: 0 };
 
   return (
-    <div className="w-full space-y-8 px-6 py-10">
-      <div className="flex items-end justify-between">
+    <div className="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{data.session_name || `Session ${sessionId.slice(-6)}`}</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">{data.session_name || `Session ${sessionId.slice(-6)}`}</h1>
           {data.exam_date && (
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
               Exam {data.exam_date}{typeof data.days_remaining === "number" && ` · ${data.days_remaining} days remaining`}
             </p>
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => navigate({ to: '/app/sessions/$sessionId/past-papers', params: { sessionId } })}>
+          <Button variant="secondary" size="sm" className="sm:size-default" onClick={() => navigate({ to: '/app/sessions/$sessionId/past-papers', params: { sessionId } })}>
             Past Papers
           </Button>
-          <Button variant="outline" onClick={onDelete}>Delete session</Button>
+          <Button variant="outline" size="sm" className="sm:size-default" onClick={onDelete}>Delete session</Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium">SRS distribution</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">

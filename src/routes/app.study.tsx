@@ -60,11 +60,11 @@ function StudyPage() {
   const phases = activeSession?.phases || {};
 
   return (
-    <div className="w-full space-y-6 px-6 py-10">
-      <div className="flex items-end justify-between gap-4">
+    <div className="w-full space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Study Agent</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">Study Agent</h1>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             Upload a syllabus, generate a plan, brew flashcards, give feedback, export.
           </p>
         </div>
@@ -86,12 +86,12 @@ function StudyPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="upload">1. Syllabus</TabsTrigger>
-          <TabsTrigger value="plan" disabled={!sessionId}>2. Plan</TabsTrigger>
-          <TabsTrigger value="cards" disabled={!phases.plan_generated}>3. Flashcards</TabsTrigger>
-          <TabsTrigger value="adapt" disabled={!phases.flashcards_generated}>4. Adapt</TabsTrigger>
-          <TabsTrigger value="export" disabled={!phases.flashcards_generated}>5. Export</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto">
+          <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm">1. Syllabus</TabsTrigger>
+          <TabsTrigger value="plan" disabled={!sessionId} className="flex-1 text-xs sm:text-sm">2. Plan</TabsTrigger>
+          <TabsTrigger value="cards" disabled={!phases.plan_generated} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
+          <TabsTrigger value="adapt" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">4. Adapt</TabsTrigger>
+          <TabsTrigger value="export" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">5. Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="mt-6">
@@ -299,7 +299,7 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader><CardTitle className="text-base font-medium">Plan settings</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -708,7 +708,7 @@ function ExportPanel({ sessionId, onOpenSession }: { sessionId: string; onOpenSe
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
       {(["anki", "html", "zip"] as const).map((k) => (
         <Card key={k}>
           <CardHeader>

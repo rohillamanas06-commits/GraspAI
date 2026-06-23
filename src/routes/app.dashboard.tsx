@@ -44,24 +44,24 @@ function DashboardPage() {
   const maxV = Math.max(1, ...data.velocity_chart.map((v) => v.cards));
 
   return (
-    <div className="w-full space-y-8 px-6 py-10">
-      <div className="flex items-center justify-between">
+    <div className="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight">
+          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight sm:gap-3 sm:text-3xl">
             Welcome back{data.user.full_name ? `, ${data.user.full_name.split(" ")[0]}` : ""}.
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Member since {data.user.member_since}</p>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Member since {data.user.member_since}</p>
         </div>
         <button 
           onClick={() => setIsBuyModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:scale-105 transition-all cursor-pointer"
+          className="flex w-fit items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 hover:scale-105 transition-all cursor-pointer"
         >
           <Coins className="h-4 w-4" />
           <span>{data.user.credits}</span>
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat icon={<Flame className="h-4 w-4" />} label="Streak" value={`${data.aggregate.streak_days} days`} />
         <Stat icon={<Layers className="h-4 w-4" />} label="Sessions" value={data.aggregate.total_sessions} />
         <Stat icon={<BookOpenCheck className="h-4 w-4" />} label="Cards reviewed (7d)" value={data.aggregate.cards_this_week} />
@@ -73,7 +73,7 @@ function DashboardPage() {
           <CardTitle className="text-base font-medium">Study velocity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end gap-3 h-32">
+          <div className="flex items-end gap-1.5 h-24 sm:gap-3 sm:h-32">
             {data.velocity_chart.map((d) => (
               <div key={d.date} className="flex flex-1 flex-col items-center gap-2">
                 <div
@@ -101,7 +101,7 @@ function DashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
             {data.sessions.map((s) => (
               <Link
                 key={s.session_id}

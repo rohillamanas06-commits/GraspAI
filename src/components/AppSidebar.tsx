@@ -22,14 +22,19 @@ const items = [
 ] as const;
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { logout, user } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
 
+  const closeMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
+
   const onSignOut = async () => {
+    closeMobile();
     await logout();
     navigate({ to: "/auth/login" });
   };
@@ -59,7 +64,7 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                      <Link to={item.url} className="flex items-center gap-3">
+                      <Link to={item.url} className="flex items-center gap-3" onClick={closeMobile}>
                         <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
                       </Link>
@@ -75,7 +80,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={toggle} tooltip={theme === "dark" ? "Light mode" : "Dark mode"}>
+            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "dark" ? "Light mode" : "Dark mode"}>
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               {!collapsed && <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>}
             </SidebarMenuButton>
@@ -96,4 +101,4 @@ export function AppSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
-}
+}

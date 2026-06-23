@@ -71,14 +71,14 @@ function PastPapersPage() {
   const hasQuestions = pastPapers && pastPapers.questions.length > 0;
 
   return (
-    <div className="w-full space-y-8 px-6 py-10">
-      <div className="flex items-center gap-4">
+    <div className="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link to="/app/sessions/$sessionId" params={{ sessionId }}><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Past Papers</h1>
-          <p className="text-muted-foreground text-sm">Generate realistic past paper questions for your syllabus.</p>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">Past Papers</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">Generate realistic past paper questions for your syllabus.</p>
         </div>
       </div>
 
@@ -127,8 +127,8 @@ function PastPapersPage() {
         </Card>
       ) : (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Generated Questions</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <h2 className="text-lg font-semibold sm:text-xl">Generated Questions</h2>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => {
                 if (user?.credits === 0) {
