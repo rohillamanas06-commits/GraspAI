@@ -77,7 +77,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="pb-6 sm:pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "dark" ? "Light mode" : "Dark mode"}>

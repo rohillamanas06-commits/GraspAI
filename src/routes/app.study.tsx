@@ -60,11 +60,11 @@ function StudyPage() {
   const phases = activeSession?.phases || {};
 
   return (
-    <div className="w-full space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+    <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col space-y-3 p-3 sm:h-auto sm:space-y-6 sm:px-6 sm:py-10">
+      <div className="shrink-0 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">Study Agent</h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          <p className="hidden mt-1 text-xs text-muted-foreground sm:block sm:text-sm">
             Upload a syllabus, generate a plan, brew flashcards, give feedback, export.
           </p>
         </div>
@@ -72,7 +72,7 @@ function StudyPage() {
           <div className="flex items-center gap-2">
             <Label className="text-xs text-muted-foreground">Active session</Label>
             <select
-              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+              className="rounded-md border border-input bg-background px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
               value={sessionId ?? ""}
               onChange={(e) => setSessionId(e.target.value || null)}
             >
@@ -85,8 +85,8 @@ function StudyPage() {
         )}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="flex w-full overflow-x-auto">
+      <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
+        <TabsList className="shrink-0 flex w-full overflow-x-auto">
           <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm">1. Syllabus</TabsTrigger>
           <TabsTrigger value="plan" disabled={!sessionId} className="flex-1 text-xs sm:text-sm">2. Plan</TabsTrigger>
           <TabsTrigger value="cards" disabled={!phases.plan_generated} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
@@ -94,22 +94,24 @@ function StudyPage() {
           <TabsTrigger value="export" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">5. Export</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload" className="mt-6">
+        <TabsContent value="upload" className="flex-1 overflow-auto mt-3 sm:mt-6 pb-4">
           {sessionId ? (
-            <Card>
-              <CardHeader><CardTitle className="text-base font-medium">Syllabus extracted</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">A syllabus PDF has already been processed for this session.</p>
+            <Card className="h-full sm:h-auto">
+              <CardHeader className="py-4 sm:py-6"><CardTitle className="text-sm sm:text-base font-medium">Syllabus extracted</CardTitle></CardHeader>
+              <CardContent className="space-y-4 py-0 pb-4 sm:py-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">A syllabus PDF has already been processed for this session.</p>
                 
                 <div className="space-y-2 border-t border-border pt-4 mt-2">
-                  <Label>Update session name</Label>
+                  <Label className="text-xs sm:text-sm">Update session name</Label>
                   <div className="flex gap-2">
                     <Input 
+                      className="h-8 sm:h-10 text-xs sm:text-sm"
                       placeholder="e.g. Midterms" 
                       id={`session-name-${sessionId}`}
                       defaultValue="" 
                     />
                     <Button 
+                      className="h-8 sm:h-10 text-xs sm:text-sm"
                       variant="outline" 
                       disabled={renaming}
                       onClick={async () => {
@@ -135,7 +137,7 @@ function StudyPage() {
                   </div>
                 </div>
 
-                <Button onClick={() => setTab("plan")} className="w-full mt-4">Continue to Plan</Button>
+                <Button onClick={() => setTab("plan")} className="w-full mt-4 h-8 sm:h-10 text-xs sm:text-sm">Continue to Plan</Button>
               </CardContent>
             </Card>
           ) : (
@@ -148,19 +150,19 @@ function StudyPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="plan" className="mt-6">
+        <TabsContent value="plan" className="flex-1 min-h-0 overflow-auto mt-3 sm:mt-6 pb-4">
           {sessionId && <PlanPanel sessionId={sessionId} onDone={() => setTab("cards")} />}
         </TabsContent>
 
-        <TabsContent value="cards" className="mt-6">
+        <TabsContent value="cards" className="flex-1 min-h-0 overflow-auto mt-3 sm:mt-6 pb-4">
           {sessionId && <FlashcardsPanel sessionId={sessionId} onDone={() => setTab("adapt")} />}
         </TabsContent>
 
-        <TabsContent value="adapt" className="mt-6">
+        <TabsContent value="adapt" className="flex-1 min-h-0 overflow-auto mt-3 sm:mt-6 pb-4">
           {sessionId && <AdaptPanel sessionId={sessionId} onDone={() => setTab("export")} />}
         </TabsContent>
 
-        <TabsContent value="export" className="mt-6">
+        <TabsContent value="export" className="flex-1 min-h-0 overflow-auto mt-3 sm:mt-6 pb-4">
           {sessionId && (
             <ExportPanel
               sessionId={sessionId}
@@ -200,28 +202,28 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base font-medium">Upload your syllabus PDF</CardTitle></CardHeader>
-      <CardContent className="space-y-5">
-        <div className="space-y-2">
-          <Label>Session name (optional)</Label>
-          <Input placeholder="e.g. Spring midterm" value={name} onChange={(e) => setName(e.target.value)} />
+    <Card className="h-full flex flex-col sm:h-auto sm:block">
+      <CardHeader className="py-4 sm:py-6 shrink-0"><CardTitle className="text-sm sm:text-base font-medium">Upload your syllabus PDF</CardTitle></CardHeader>
+      <CardContent className="flex flex-col flex-1 min-h-0 space-y-3 sm:space-y-5 py-0 pb-4 sm:py-6">
+        <div className="space-y-1 sm:space-y-2 shrink-0">
+          <Label className="text-xs sm:text-sm">Session name (optional)</Label>
+          <Input className="h-8 sm:h-10 text-xs sm:text-sm" placeholder="e.g. Spring midterm" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <div className="space-y-2">
-          <Label>PDF file</Label>
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-8 text-sm text-muted-foreground transition hover:bg-muted">
+        <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col min-h-0 min-h-[120px]">
+          <Label className="text-xs sm:text-sm">PDF file</Label>
+          <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
             <Upload className="h-4 w-4" />
-            <span>{file ? file.name : "Click to choose a PDF"}</span>
+            <span className="text-center">{file ? file.name : "Click to choose a PDF"}</span>
             <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </label>
         </div>
         <Button 
           onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : submit())} 
           disabled={(user?.credits !== 0 && !file) || loading} 
-          className="w-full"
+          className="w-full shrink-0 h-8 sm:h-10 text-xs sm:text-sm"
           variant={user?.credits === 0 ? "secondary" : "default"}
         >
-          {user?.credits === 0 ? "Credits finished (Buy more)" : loading ? "Extracting topics…" : "Upload & extract (Costs 1 Credit)"}
+          {user?.credits === 0 ? "Credits finished" : loading ? "Extracting…" : "Upload & extract (Costs 1 Credit)"}
         </Button>
       </CardContent>
       <BuyCreditsModal 
@@ -299,75 +301,68 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader><CardTitle className="text-base font-medium">Plan settings</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Exam date (Min 2 days ahead)</Label>
-            <Input
-              type="date"
-              min={(() => {
-                const minD = new Date();
-                minD.setDate(minD.getDate() + 2);
-                const y = minD.getFullYear();
-                const m = String(minD.getMonth() + 1).padStart(2, '0');
-                const d = String(minD.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-              })()}
-              value={examDate}
-              onChange={(e) => setExamDate(e.target.value)}
-              onBlur={(e) => {
-                const minD = new Date();
-                minD.setDate(minD.getDate() + 2);
-                const y = minD.getFullYear();
-                const m = String(minD.getMonth() + 1).padStart(2, '0');
-                const d = String(minD.getDate()).padStart(2, '0');
-                const minStr = `${y}-${m}-${d}`;
-                if (e.target.value < minStr) {
-                  setExamDate(minStr);
-                  toast.error("Exam date must be at least 2 days in the future.");
-                }
-              }}
-            />
+    <div className="flex flex-col h-full gap-3 sm:grid sm:h-auto sm:grid-cols-2 sm:gap-4">
+      <Card className="shrink-0">
+        <CardHeader className="py-3 sm:py-6"><CardTitle className="text-sm sm:text-base font-medium">Plan settings</CardTitle></CardHeader>
+        <CardContent className="space-y-3 sm:space-y-4 py-0 pb-3 sm:py-6">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1 sm:space-y-2">
+              <Label className="text-xs sm:text-sm">Exam date</Label>
+              <Input
+                type="date"
+                className="h-8 sm:h-10 text-xs sm:text-sm"
+                min={(() => {
+                  const minD = new Date();
+                  minD.setDate(minD.getDate() + 2);
+                  const y = minD.getFullYear();
+                  const m = String(minD.getMonth() + 1).padStart(2, '0');
+                  const d = String(minD.getDate()).padStart(2, '0');
+                  return `${y}-${m}-${d}`;
+                })()}
+                value={examDate}
+                onChange={(e) => setExamDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1 sm:space-y-2"><Label className="text-xs sm:text-sm">Daily hours</Label><Input type="number" min={1} max={16} value={hours} onChange={(e) => setHours(Number(e.target.value))} className="h-8 sm:h-10 text-xs sm:text-sm" /></div>
           </div>
-          <div className="space-y-2"><Label>Daily study hours</Label><Input type="number" min={1} max={16} value={hours} onChange={(e) => setHours(Number(e.target.value))} /></div>
-          <div className="space-y-2"><Label>Weak subjects (comma-separated)</Label><Input value={weak} onChange={(e) => setWeak(e.target.value)} placeholder="e.g. Calculus, OS" /></div>
-          <Button onClick={generate} disabled={loading} className="w-full">{loading ? "Planning…" : planData?.plan ? "Regenerate plan" : "Generate plan"}</Button>
+          <div className="space-y-1 sm:space-y-2"><Label className="text-xs sm:text-sm">Weak subjects</Label><Input className="h-8 sm:h-10 text-xs sm:text-sm" value={weak} onChange={(e) => setWeak(e.target.value)} placeholder="e.g. Calculus" /></div>
+          
+          <div className="flex gap-2">
+            <Button onClick={generate} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">{loading ? "Planning…" : planData?.plan ? "Regenerate" : "Generate plan"}</Button>
+            {planData?.plan && (
+              <Button onClick={onDone} variant="secondary" className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">Continue to cards</Button>
+            )}
+          </div>
 
-          {planData?.plan && (
-            <Button onClick={onDone} variant="secondary" className="w-full mt-2">Continue to flashcards</Button>
-          )}
-
-          <div className="border-t border-border pt-4 mt-2 text-xs text-muted-foreground">
+          <div className="hidden sm:block border-t border-border pt-4 mt-2 text-xs text-muted-foreground">
             {topicsData?.topics.length ?? 0} topics extracted
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base font-medium">Schedule</CardTitle></CardHeader>
-        <CardContent>
+      <Card className="flex flex-col min-h-[250px] flex-1">
+        <CardHeader className="py-3 sm:py-6 shrink-0"><CardTitle className="text-sm sm:text-base font-medium">Schedule</CardTitle></CardHeader>
+        <CardContent className="flex flex-col flex-1 overflow-hidden py-0 pb-3 sm:py-6">
           {loading || isPlanLoading ? (
-            <div className="py-12">
-              <CoffeeLoading text="Brewing your perfect study schedule..." />
+            <div className="flex-1 flex items-center justify-center">
+              <CoffeeLoading text="Brewing your schedule..." />
             </div>
           ) : !planData?.plan ? (
-            <p className="text-sm text-muted-foreground">No plan yet. Set your exam date and generate one.</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">No plan yet. Set your exam date and generate one.</p>
           ) : (
-            <ol className="space-y-2 max-h-[28rem] overflow-auto pr-2">
+            <ol className="space-y-2 flex-1 overflow-auto pr-2">
               {planData.plan.map((d) => (
-                <li key={d.day} className="rounded-md border border-border bg-card/60 p-3">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <li key={d.day} className="rounded-md border border-border bg-card/60 p-2 sm:p-3">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
                     <span>Day {d.day} · {d.date}</span>
                     <span>{d.estimated_hours}h{d.is_revision && " · revision"}</span>
                   </div>
-                  <div className="mt-1 text-sm text-foreground">{d.topics.join(" · ")}</div>
+                  <div className="mt-1 text-xs sm:text-sm text-foreground">{d.topics.join(" · ")}</div>
                 </li>
               ))}
               {planData.plan.length > 0 && (
-                <li className="rounded-md border border-primary/30 bg-primary/5 p-3">
-                  <div className="flex items-center justify-between text-xs text-primary font-medium">
+                <li className="rounded-md border border-primary/30 bg-primary/5 p-2 sm:p-3">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-primary font-medium">
                     <span>Exam Day · {
                       sessionData?.exam_date || (() => {
                         const lastDay = planData.plan[planData.plan.length - 1];
@@ -462,13 +457,13 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <CardTitle className="text-base font-medium">Flashcards (min 3)</CardTitle>
-          <div className="flex items-end gap-2">
+    <Card className="flex flex-col h-full min-h-0 sm:h-auto sm:block">
+      <CardHeader className="shrink-0 py-3 sm:py-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <CardTitle className="text-sm sm:text-base font-medium">Flashcards (min 3)</CardTitle>
+          <div className="flex flex-1 sm:flex-none items-end justify-end gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Cards per topic</Label>
+              <Label className="text-[10px] sm:text-xs">Cards per topic</Label>
               <Input
                 type="number"
                 min={3}
@@ -480,63 +475,63 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
                   if (val < 3) setCardsPerTopic(3);
                   if (val > 15) setCardsPerTopic(15);
                 }}
-                className="w-24"
+                className="w-16 h-8 sm:h-10 sm:w-24 text-xs sm:text-sm"
               />
             </div>
-            <Button onClick={generate} disabled={loading}>{loading ? "Brewing…" : data?.cards ? "Regenerate" : "Generate"}</Button>
+            <Button onClick={generate} disabled={loading} className="h-8 sm:h-10 text-xs sm:text-sm">{loading ? "Brewing…" : data?.cards ? "Regenerate" : "Generate"}</Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col flex-1 overflow-hidden space-y-3 sm:space-y-4 py-0 pb-3 sm:py-6">
         {loading || isCardsLoading ? (
-          <div className="py-12">
+          <div className="flex-1 flex items-center justify-center">
             <CoffeeLoading text="Brewing your flashcards..." />
           </div>
         ) : !data?.cards ? (
-          <p className="text-sm text-muted-foreground">No flashcards yet.</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">No flashcards yet.</p>
         ) : feedbackSaved ? (
-          <div className="flex flex-col items-center justify-center space-y-4 rounded-md border border-dashed border-border py-12 text-center relative">
+          <div className="flex flex-1 flex-col items-center justify-center space-y-4 rounded-md border border-dashed border-border py-8 text-center relative">
             <Button
               variant="ghost"
               size="sm"
-              className="absolute top-2 right-2 text-xs text-muted-foreground hover:text-foreground"
+              className="absolute top-2 right-2 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
               onClick={() => {
                 setFeedbackSaved(false);
                 localStorage.removeItem(`feedback_saved_${sessionId}`);
               }}
             >
-              <Pencil className="h-3 w-3 mr-1" /> Edit feedback
+              <Pencil className="h-3 w-3 mr-1" /> Edit
             </Button>
-            <p className="text-sm text-muted-foreground">You have already saved feedback for these flashcards.<br />Click 'Regenerate' at the top to brew a new set.</p>
-            <Button onClick={onDone} variant="outline">
+            <p className="text-xs sm:text-sm text-muted-foreground">You have already saved feedback for these flashcards.<br />Click 'Regenerate' at the top to brew a new set.</p>
+            <Button onClick={onDone} variant="outline" className="h-8 sm:h-10 text-xs sm:text-sm">
               Continue to Adapt Plan
             </Button>
           </div>
         ) : (
-          <>
-            <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="grid gap-3 sm:grid-cols-2 flex-1 overflow-auto pr-1">
               {data.cards.map((c, i) => {
                 const key = c.question;
                 const fb = feedback[key];
                 const open = revealed[key];
                 return (
-                  <div key={i} className="rounded-md border border-border bg-card p-4">
+                  <div key={i} className="rounded-md border border-border bg-card p-3 sm:p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <Badge variant="secondary" className="text-[10px]">{c.topic}</Badge>
-                      <Badge variant="outline" className="text-[10px] capitalize">{c.difficulty}</Badge>
+                      <Badge variant="secondary" className="text-[9px] sm:text-[10px]">{c.topic}</Badge>
+                      <Badge variant="outline" className="text-[9px] sm:text-[10px] capitalize">{c.difficulty}</Badge>
                     </div>
-                    <p className="mt-2 text-sm font-medium text-foreground">{c.question}</p>
+                    <p className="mt-2 text-xs sm:text-sm font-medium text-foreground">{c.question}</p>
                     {open ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{c.answer}</p>
+                      <p className="mt-2 text-xs sm:text-sm text-muted-foreground">{c.answer}</p>
                     ) : (
                       <button
-                        className="mt-2 text-xs text-primary underline-offset-4 hover:underline"
+                        className="mt-2 text-[10px] sm:text-xs text-primary underline-offset-4 hover:underline"
                         onClick={() => setRevealed((r) => ({ ...r, [key]: true }))}
                       >
                         Reveal answer
                       </button>
                     )}
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex gap-1.5 sm:gap-2">
                       {(["too_easy", "too_hard", "skip"] as Feedback[]).map((f) => {
                         const active = fb === f;
                         const Icon = f === "too_easy" ? Check : f === "too_hard" ? X : SkipForward;
@@ -544,10 +539,10 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
                           <button
                             key={f}
                             onClick={() => setFeedback((cur) => ({ ...cur, [key]: f }))}
-                            className={`flex flex-1 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs transition ${active ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:bg-muted"
+                            className={`flex flex-1 items-center justify-center gap-1 rounded-md border px-1 py-1 sm:px-2 sm:py-1.5 text-[10px] sm:text-xs transition ${active ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:bg-muted"
                               }`}
                           >
-                            <Icon className="h-3 w-3" />
+                            <Icon className="h-3 w-3 shrink-0" />
                             {f === "too_easy" ? "Easy" : f === "too_hard" ? "Hard" : "Skip"}
                           </button>
                         );
@@ -560,11 +555,11 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
             <Button
               onClick={submitFeedback}
               disabled={submitting || Object.keys(feedback).length === 0}
-              className="w-full"
+              className="w-full mt-3 shrink-0 h-8 sm:h-10 text-xs sm:text-sm"
             >
               {submitting ? "Saving…" : Object.keys(feedback).length === 0 ? "Rate at least one card to continue" : "Save feedback & continue"}
             </Button>
-          </>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -605,63 +600,63 @@ function AdaptPanel({ sessionId, onDone }: { sessionId: string; onDone: () => vo
   const summary = result?.changes_summary;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-medium flex items-center gap-2">
+    <Card className="flex flex-col h-full min-h-0 sm:h-auto sm:block">
+      <CardHeader className="shrink-0 py-3 sm:py-6">
+        <CardTitle className="text-sm sm:text-base font-medium flex items-center gap-2">
           Adapt plan to your feedback
-          <span className="text-sm font-normal text-muted-foreground">(optional)</span>
+          <span className="text-xs sm:text-sm font-normal text-muted-foreground">(optional)</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col flex-1 overflow-hidden space-y-3 sm:space-y-4 py-0 pb-3 sm:py-6">
         {isSessionLoading || isPlanLoading ? (
-          <div className="py-12">
+          <div className="flex-1 flex items-center justify-center">
             <CoffeeLoading text="Loading your adapted plan..." />
           </div>
         ) : !isAdapted ? (
-          <>
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col flex-1">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               The agent reads all your flashcard feedback and rewrites your plan — more days for hard topics, compress easy ones, dedicated re-study days for skipped topics.
             </p>
-            <div className="flex gap-3 mt-4">
-              <Button onClick={adapt} disabled={loading} className="w-full">
-                {loading ? "Rewriting plan…" : "Adapt plan"}
+            <div className="flex gap-2 mt-4">
+              <Button onClick={adapt} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">
+                {loading ? "Rewriting…" : "Adapt plan"}
               </Button>
-              <Button variant="secondary" onClick={onDone} disabled={loading} className="w-full">
+              <Button variant="secondary" onClick={onDone} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">
                 Skip to export
               </Button>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="space-y-6">
-            <div className="rounded-md border border-border bg-card/60 p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <p className="text-sm text-foreground font-medium">Your plan has been adapted.</p>
+          <div className="flex flex-col flex-1 min-h-0 space-y-4 sm:space-y-6">
+            <div className="shrink-0 rounded-md border border-border bg-card/60 p-3 sm:p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
+                <p className="text-xs sm:text-sm text-foreground font-medium">Your plan has been adapted.</p>
               </div>
-              {summary && <p className="mb-4 text-sm text-muted-foreground">{summary}</p>}
-              <div className="flex justify-center gap-3 mt-4">
-                <Button variant="outline" onClick={adapt} disabled={loading}>
-                  {loading ? "Rewriting plan…" : "Re-adapt plan"}
+              {summary && <p className="mb-3 sm:mb-4 text-[10px] sm:text-sm text-muted-foreground">{summary}</p>}
+              <div className="flex justify-center gap-2 mt-2 sm:mt-4">
+                <Button variant="outline" onClick={adapt} disabled={loading} className="h-8 sm:h-10 text-xs sm:text-sm">
+                  {loading ? "Rewriting…" : "Re-adapt"}
                 </Button>
-                <Button onClick={onDone}>Continue to export</Button>
+                <Button onClick={onDone} className="h-8 sm:h-10 text-xs sm:text-sm">Continue to export</Button>
               </div>
             </div>
 
             {displayPlan && (
-              <div>
-                <h3 className="text-sm font-medium mb-3">Adapted Schedule</h3>
-                <ol className="space-y-2 max-h-[28rem] overflow-auto pr-2">
+              <div className="flex flex-col flex-1 min-h-0">
+                <h3 className="text-xs sm:text-sm font-medium mb-2 shrink-0">Adapted Schedule</h3>
+                <ol className="space-y-2 flex-1 overflow-auto pr-2">
                   {displayPlan.map((d: any) => (
-                    <li key={d.day} className="rounded-md border border-border bg-card/60 p-3">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <li key={d.day} className="rounded-md border border-border bg-card/60 p-2 sm:p-3">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
                         <span>Day {d.day} · {d.date}</span>
                         <span>{d.estimated_hours}h{d.is_revision && " · revision"}</span>
                       </div>
-                      <div className="mt-1 text-sm text-foreground">{d.topics.join(" · ")}</div>
+                      <div className="mt-1 text-xs sm:text-sm text-foreground">{d.topics.join(" · ")}</div>
                     </li>
                   ))}
                   {displayPlan.length > 0 && (
-                    <li className="rounded-md border border-primary/30 bg-primary/5 p-3">
-                      <div className="flex items-center justify-between text-xs text-primary font-medium">
+                    <li className="rounded-md border border-primary/30 bg-primary/5 p-2 sm:p-3">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs text-primary font-medium">
                         <span>Exam Day · {
                           sessionData?.exam_date || (() => {
                             const lastDay = displayPlan[displayPlan.length - 1];
