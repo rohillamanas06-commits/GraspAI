@@ -55,7 +55,7 @@ export function Footer() {
       </div>
 
       <div className="w-full border-t border-white/10 mt-16 pt-8 text-xs text-white/40 flex flex-col md:flex-row items-center justify-between">
-        <p>© 2026 GraspAI. Built by Manas Rohilla.</p>
+        <p>&copy; {new Date().getFullYear()} GraspAI. All rights reserved.</p>
       </div>
     </footer>
   );

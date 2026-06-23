@@ -137,9 +137,15 @@ def init_db():
             plan_json       TEXT,
             flashcards_json TEXT,
             plan_version    INTEGER DEFAULT 1,
-            exam_date       TEXT
+            exam_date       TEXT,
+            past_papers_json TEXT
         );
     """)
+
+    try:
+        cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS past_papers_json TEXT;")
+    except Exception:
+        conn.rollback()
 
     # ── Card feedback ─────────────────────────────────────────────────────────
     cur.execute("""
@@ -250,6 +256,19 @@ class Flashcard(BaseModel):
     answer: str
     difficulty: str
     next_review_day: int
+
+class GeneratedQuestion(BaseModel):
+    exam_label: str
+    topic: str
+    question: str
+    answer: str
+
+class PastPapersGenerateRequest(BaseModel):
+    exam_type: str
+
+class PastPapersResponse(BaseModel):
+    session_id: str
+    questions: list[GeneratedQuestion]
 
 class FlashcardDeck(BaseModel):
     topic: str
@@ -1368,6 +1387,88 @@ def get_study_plan(session_id: str, db=Depends(get_db), current_user: dict = Dep
     if not row["plan_json"]:
         return {"session_id": session_id, "plan": None}
     return {"session_id": session_id, "plan": json.loads(row["plan_json"])}
+
+
+# ─────────────────────────────────────────────
+# PHASE 2.5 — PAST PAPERS (AI GENERATED)
+# ─────────────────────────────────────────────
+
+@app.post("/api/sessions/{session_id}/generate-past-papers", response_model=PastPapersResponse, tags=["Phase 2.5 — Past Papers"])
+def generate_past_papers(
+    session_id: str,
+    req: PastPapersGenerateRequest,
+    db=Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate realistic past paper questions for Indian exams using Gemini/Groq."""
+    row = get_session_for_user(db, session_id, current_user["id"])
+    topics_json = row.get("topics_json")
+    
+    if not topics_json:
+        raise HTTPException(status_code=400, detail="Syllabus must be uploaded first.")
+        
+    prompt = f"""
+You are an expert examiner for Indian competitive exams.
+The user is preparing for: {req.exam_type}.
+Their syllabus topics are: {topics_json}
+
+Generate exactly 5 highly realistic past-paper questions for these topics, matching the typical difficulty and style of {req.exam_type}.
+Do not write long introductions. Be specific and accurate.
+
+Return ONLY a JSON object with this exact structure:
+{{
+  "questions": [
+    {{
+      "exam_label": "{req.exam_type} 2022 (or similar year)",
+      "topic": "Exact topic name from syllabus",
+      "question": "The realistic question text",
+      "answer": "The correct answer and a brief explanation"
+    }}
+  ]
+}}
+"""
+    try:
+        parsed = call_llm_json(prompt)
+        questions_data = parsed.get("questions", [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate past papers: {str(e)}")
+    
+    if not questions_data:
+        raise HTTPException(status_code=500, detail="LLM returned empty questions array.")
+        
+    save_session_field(db, session_id, "past_papers_json", json.dumps(questions_data))
+    
+    return PastPapersResponse(
+        session_id=session_id,
+        questions=[GeneratedQuestion(**q) for q in questions_data]
+    )
+
+@app.get("/api/sessions/{session_id}/past-papers", response_model=PastPapersResponse, tags=["Phase 2.5 — Past Papers"])
+def get_past_papers(session_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Fetch previously generated past papers."""
+    row = get_session_for_user(db, session_id, current_user["id"])
+    papers_json = row.get("past_papers_json")
+    
+    if not papers_json:
+        return PastPapersResponse(session_id=session_id, questions=[])
+        
+    questions_data = json.loads(papers_json)
+    return PastPapersResponse(
+        session_id=session_id,
+        questions=[GeneratedQuestion(**q) for q in questions_data]
+    )
+
+@app.delete("/api/sessions/{session_id}/past-papers", tags=["Phase 2.5 — Past Papers"])
+def clear_past_papers(session_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Clear the generated past papers for a session."""
+    get_session_for_user(db, session_id, current_user["id"])
+    
+    cur = db.cursor()
+    cur.execute("UPDATE sessions SET past_papers_json = NULL WHERE id = %s", (session_id,))
+    db.commit()
+    cur.close()
+    
+    return {"message": "Past papers cleared"}
 
 
 # ─────────────────────────────────────────────

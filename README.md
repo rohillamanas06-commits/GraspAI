@@ -42,6 +42,12 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - Choose between 3 to 15 cards per topic
 - Covers definitions, processes, properties, and cause/effect
 
+#### 📝 AI-Generated Past Papers
+- Select from major Indian competitive exams (NEET, JEE Main, JEE Advanced, GATE, CAT, UPSC)
+- Instantly generates highly realistic, mock past-paper questions tailored specifically to your uploaded syllabus
+- Expandable solutions allowing you to test yourself before viewing the answers
+- Automatically falls back to secondary LLMs (Groq) for high availability
+
 #### 🔁 Smart Feedback Loop & Adaptation
 - Interactive flashcard review sessions
 - Rate flashcards as **Easy**, **Hard**, or **Skip**

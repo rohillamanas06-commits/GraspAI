@@ -23,7 +23,8 @@ import { Route as LegalLicenseRouteImport } from './routes/_legal.license'
 import { Route as LegalFaqRouteImport } from './routes/_legal.faq'
 import { Route as LegalCookiesRouteImport } from './routes/_legal.cookies'
 import { Route as LegalAboutRouteImport } from './routes/_legal.about'
-import { Route as AppSessionsSessionIdRouteImport } from './routes/app.sessions.$sessionId'
+import { Route as AppSessionsSessionIdIndexRouteImport } from './routes/app.sessions.$sessionId.index'
+import { Route as AppSessionsSessionIdPastPapersRouteImport } from './routes/app.sessions.$sessionId.past-papers'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -94,11 +95,18 @@ const LegalAboutRoute = LegalAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => LegalRoute,
 } as any)
-const AppSessionsSessionIdRoute = AppSessionsSessionIdRouteImport.update({
-  id: '/sessions/$sessionId',
-  path: '/sessions/$sessionId',
-  getParentRoute: () => AppRoute,
-} as any)
+const AppSessionsSessionIdIndexRoute =
+  AppSessionsSessionIdIndexRouteImport.update({
+    id: '/sessions/$sessionId/',
+    path: '/sessions/$sessionId/',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppSessionsSessionIdPastPapersRoute =
+  AppSessionsSessionIdPastPapersRouteImport.update({
+    id: '/sessions/$sessionId/past-papers',
+    path: '/sessions/$sessionId/past-papers',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -114,7 +122,8 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
-  '/app/sessions/$sessionId': typeof AppSessionsSessionIdRoute
+  '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId/': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -129,7 +138,8 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
-  '/app/sessions/$sessionId': typeof AppSessionsSessionIdRoute
+  '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,7 +157,8 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
-  '/app/sessions/$sessionId': typeof AppSessionsSessionIdRoute
+  '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId/': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -165,7 +176,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/app/'
-    | '/app/sessions/$sessionId'
+    | '/app/sessions/$sessionId/past-papers'
+    | '/app/sessions/$sessionId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/app'
+    | '/app/sessions/$sessionId/past-papers'
     | '/app/sessions/$sessionId'
   id:
     | '__root__'
@@ -197,7 +210,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/app/'
-    | '/app/sessions/$sessionId'
+    | '/app/sessions/$sessionId/past-papers'
+    | '/app/sessions/$sessionId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -308,11 +322,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalAboutRouteImport
       parentRoute: typeof LegalRoute
     }
-    '/app/sessions/$sessionId': {
-      id: '/app/sessions/$sessionId'
+    '/app/sessions/$sessionId/': {
+      id: '/app/sessions/$sessionId/'
       path: '/sessions/$sessionId'
-      fullPath: '/app/sessions/$sessionId'
-      preLoaderRoute: typeof AppSessionsSessionIdRouteImport
+      fullPath: '/app/sessions/$sessionId/'
+      preLoaderRoute: typeof AppSessionsSessionIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sessions/$sessionId/past-papers': {
+      id: '/app/sessions/$sessionId/past-papers'
+      path: '/sessions/$sessionId/past-papers'
+      fullPath: '/app/sessions/$sessionId/past-papers'
+      preLoaderRoute: typeof AppSessionsSessionIdPastPapersRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -342,14 +363,16 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppStudyRoute: typeof AppStudyRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppSessionsSessionIdRoute: typeof AppSessionsSessionIdRoute
+  AppSessionsSessionIdPastPapersRoute: typeof AppSessionsSessionIdPastPapersRoute
+  AppSessionsSessionIdIndexRoute: typeof AppSessionsSessionIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppStudyRoute: AppStudyRoute,
   AppIndexRoute: AppIndexRoute,
-  AppSessionsSessionIdRoute: AppSessionsSessionIdRoute,
+  AppSessionsSessionIdPastPapersRoute: AppSessionsSessionIdPastPapersRoute,
+  AppSessionsSessionIdIndexRoute: AppSessionsSessionIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

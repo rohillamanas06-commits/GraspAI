@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/sessions/$sessionId")({
+export const Route = createFileRoute("/app/sessions/$sessionId/")({
   head: () => ({ meta: [{ title: "Session — GraspAI" }] }),
   component: SessionPage,
 });
@@ -50,7 +50,12 @@ function SessionPage() {
             </p>
           )}
         </div>
-        <Button variant="outline" onClick={onDelete}>Delete session</Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate({ to: '/app/sessions/$sessionId/past-papers', params: { sessionId } })}>
+            Past Papers
+          </Button>
+          <Button variant="outline" onClick={onDelete}>Delete session</Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
