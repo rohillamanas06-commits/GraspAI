@@ -10,17 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as LegalRouteImport } from './routes/_legal'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppStudyRouteImport } from './routes/app.study'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as LegalTermsRouteImport } from './routes/_legal.terms'
+import { Route as LegalPrivacyRouteImport } from './routes/_legal.privacy'
+import { Route as LegalLicenseRouteImport } from './routes/_legal.license'
+import { Route as LegalFaqRouteImport } from './routes/_legal.faq'
+import { Route as LegalCookiesRouteImport } from './routes/_legal.cookies'
+import { Route as LegalAboutRouteImport } from './routes/_legal.about'
 import { Route as AppSessionsSessionIdRouteImport } from './routes/app.sessions.$sessionId'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/_legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +64,36 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalLicenseRoute = LegalLicenseRouteImport.update({
+  id: '/license',
+  path: '/license',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalFaqRoute = LegalFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalAboutRoute = LegalAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LegalRoute,
+} as any)
 const AppSessionsSessionIdRoute = AppSessionsSessionIdRouteImport.update({
   id: '/sessions/$sessionId',
   path: '/sessions/$sessionId',
@@ -62,6 +103,12 @@ const AppSessionsSessionIdRoute = AppSessionsSessionIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/about': typeof LegalAboutRoute
+  '/cookies': typeof LegalCookiesRoute
+  '/faq': typeof LegalFaqRoute
+  '/license': typeof LegalLicenseRoute
+  '/privacy': typeof LegalPrivacyRoute
+  '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
   '/auth/login': typeof AuthLoginRoute
@@ -71,6 +118,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof LegalAboutRoute
+  '/cookies': typeof LegalCookiesRoute
+  '/faq': typeof LegalFaqRoute
+  '/license': typeof LegalLicenseRoute
+  '/privacy': typeof LegalPrivacyRoute
+  '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
   '/auth/login': typeof AuthLoginRoute
@@ -81,7 +134,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_legal': typeof LegalRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/_legal/about': typeof LegalAboutRoute
+  '/_legal/cookies': typeof LegalCookiesRoute
+  '/_legal/faq': typeof LegalFaqRoute
+  '/_legal/license': typeof LegalLicenseRoute
+  '/_legal/privacy': typeof LegalPrivacyRoute
+  '/_legal/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
   '/auth/login': typeof AuthLoginRoute
@@ -94,6 +154,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/about'
+    | '/cookies'
+    | '/faq'
+    | '/license'
+    | '/privacy'
+    | '/terms'
     | '/app/dashboard'
     | '/app/study'
     | '/auth/login'
@@ -103,6 +169,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/cookies'
+    | '/faq'
+    | '/license'
+    | '/privacy'
+    | '/terms'
     | '/app/dashboard'
     | '/app/study'
     | '/auth/login'
@@ -112,7 +184,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_legal'
     | '/app'
+    | '/_legal/about'
+    | '/_legal/cookies'
+    | '/_legal/faq'
+    | '/_legal/license'
+    | '/_legal/privacy'
+    | '/_legal/terms'
     | '/app/dashboard'
     | '/app/study'
     | '/auth/login'
@@ -123,6 +202,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LegalRoute: typeof LegalRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
@@ -135,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_legal': {
+      id: '/_legal'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -179,6 +266,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_legal/terms': {
+      id: '/_legal/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/_legal/privacy': {
+      id: '/_legal/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/_legal/license': {
+      id: '/_legal/license'
+      path: '/license'
+      fullPath: '/license'
+      preLoaderRoute: typeof LegalLicenseRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/_legal/faq': {
+      id: '/_legal/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof LegalFaqRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/_legal/cookies': {
+      id: '/_legal/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/_legal/about': {
+      id: '/_legal/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof LegalAboutRouteImport
+      parentRoute: typeof LegalRoute
+    }
     '/app/sessions/$sessionId': {
       id: '/app/sessions/$sessionId'
       path: '/sessions/$sessionId'
@@ -188,6 +317,26 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LegalRouteChildren {
+  LegalAboutRoute: typeof LegalAboutRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalFaqRoute: typeof LegalFaqRoute
+  LegalLicenseRoute: typeof LegalLicenseRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalAboutRoute: LegalAboutRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalFaqRoute: LegalFaqRoute,
+  LegalLicenseRoute: LegalLicenseRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
@@ -207,6 +356,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LegalRoute: LegalRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
