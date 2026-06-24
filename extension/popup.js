@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:8000";
+// For production, replace this with your actual Render backend URL (e.g., https://graspai-backend.onrender.com)
+const API_BASE = "https://graspai.onrender.com";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const loginView = document.getElementById("login-view");
@@ -6,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loginForm = document.getElementById("login-form");
   const loginError = document.getElementById("login-error");
   const loginBtn = document.getElementById("login-btn");
-  
+
   const sessionSelect = document.getElementById("session-select");
   const selectionText = document.getElementById("selection-text");
   const generateBtn = document.getElementById("generate-btn");
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Check login state
   const { graspai_token } = await chrome.storage.local.get("graspai_token");
-  
+
   if (graspai_token) {
     showMainView(graspai_token);
   } else {
@@ -91,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       mainSuccess.textContent = `Success! Added ${data.count} flashcards to the session.`;
       selectionText.value = ""; // clear
       await chrome.storage.local.remove("graspai_selection");
-      
+
       // Update credits locally (optimistic)
       let currentCredits = parseInt(creditsCount.textContent);
       if (!isNaN(currentCredits)) creditsCount.textContent = currentCredits - 1;
@@ -107,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function showMainView(token) {
     loginView.classList.add("hidden");
     mainView.classList.remove("hidden");
-    
+
     // Fetch sessions
     try {
       const res = await fetch(`${API_BASE}/api/dashboard`, {
@@ -117,10 +118,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         chrome.storage.local.remove("graspai_token");
         return showLoginView();
       }
-      
+
       const data = await res.json();
       creditsCount.textContent = data.user?.credits ?? 0;
-      
+
       sessionSelect.innerHTML = "";
       if (!data.sessions || data.sessions.length === 0) {
         sessionSelect.innerHTML = `<option value="">No sessions found. Create one first.</option>`;
@@ -152,7 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (results && results[0] && results[0].result) {
               selectionText.value = results[0].result;
             }
-          }).catch(() => {});
+          }).catch(() => { });
         }
       });
     }
