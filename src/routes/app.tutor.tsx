@@ -46,7 +46,7 @@ function TutorPage() {
     if (files.length + selected.length > 5) return toast.error("Max 5 files allowed");
 
     if (selected.some(f => f.type.startsWith("image/"))) {
-      toast("Image detected. Switching to Gemini for this request.");
+      toast.info("Image detected. Switching to Gemini.");
     }
 
     setFiles(prev => [...prev, ...selected]);
