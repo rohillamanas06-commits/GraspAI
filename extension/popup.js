@@ -1,7 +1,7 @@
-// For production, replace this with your actual Render backend URL (e.g., https://graspai-backend.onrender.com)
 const API_BASE = "https://graspai.onrender.com";
 
 document.addEventListener("DOMContentLoaded", async () => {
+
   const loginView = document.getElementById("login-view");
   const mainView = document.getElementById("main-view");
   const loginForm = document.getElementById("login-form");
@@ -42,8 +42,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ email, password })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Login failed");
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        throw new Error(`Backend returned non-JSON (${res.status}): ${text.substring(0, 50)}`);
+      }
+
+      if (!res.ok) throw new Error(data.detail || `Login failed (${res.status})`);
 
       await chrome.storage.local.set({ graspai_token: data.access_token });
       showMainView(data.access_token);
@@ -86,8 +93,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ text, session_id: sessionId })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to generate flashcards");
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        throw new Error(`Backend returned non-JSON (${res.status}): ${text.substring(0, 50)}`);
+      }
+
+      if (!res.ok) throw new Error(data.detail || `Failed to generate flashcards (${res.status})`);
 
       mainSuccess.textContent = `Success! Added ${data.count} flashcards to the session.`;
       selectionText.value = ""; // clear
@@ -119,7 +133,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         return showLoginView();
       }
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        throw new Error(`Backend returned non-JSON (${res.status}): ${text.substring(0, 50)}`);
+      }
       creditsCount.textContent = data.user?.credits ?? 0;
 
       sessionSelect.innerHTML = "";
