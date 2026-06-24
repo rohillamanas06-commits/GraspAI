@@ -2589,7 +2589,10 @@ async def tutor_chat(
         "If the user uploads multiple different files (text, pdf, images), analyze all of them together to answer their question."
     )
 
-    if model_choice == "gemini":
+    response_text = None
+    use_gemini = has_images
+
+    if use_gemini:
         gemini_messages = [
             genai.types.Content(role="user", parts=[genai.types.Part.from_text(text=system_prompt)]),
             genai.types.Content(role="model", parts=[genai.types.Part.from_text(text="Understood.")])
@@ -2618,17 +2621,18 @@ async def tutor_chat(
         except Exception as e:
             error_msg = str(e)
             if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                raise HTTPException(status_code=429, detail="High traffic right now. Please switch to Groq.")
-            raise HTTPException(status_code=500, detail=error_msg)
+                use_gemini = False
+            else:
+                raise HTTPException(status_code=500, detail=error_msg)
 
-    else:
+    if not use_gemini:
+        if has_images:
+            combined_text += "\n\n[System Note: Image uploads were ignored because the vision model is currently experiencing high traffic.]"
+
         groq_messages = [{"role": "system", "content": system_prompt}]
         for msg in messages:
             groq_messages.append({"role": msg["role"], "content": msg["content"]})
         
-        if has_images:
-            raise HTTPException(status_code=400, detail="Groq model currently does not support images in this setup. Please switch to Gemini.")
-
         groq_messages.append({"role": "user", "content": combined_text})
         
         if not groq_client:
@@ -2641,6 +2645,8 @@ async def tutor_chat(
                 temperature=0.7
             )
             response_text = resp.choices[0].message.content
+            if has_images:
+                response_text = "*System Note: Gemini vision model is busy. Fell back to Groq (images were ignored).*\n\n" + response_text
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

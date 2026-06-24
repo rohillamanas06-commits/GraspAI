@@ -23,7 +23,6 @@ interface Message {
 
 function TutorPage() {
   const { user, refresh } = useAuth();
-  const [model, setModel] = useState<"gemini" | "groq">("groq");
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [];
     const saved = localStorage.getItem("grasp_tutor_history");
@@ -46,12 +45,8 @@ function TutorPage() {
     const selected = Array.from(e.target.files ?? []);
     if (files.length + selected.length > 5) return toast.error("Max 5 files allowed");
 
-    // Auto-switch to Gemini if an image is selected
     if (selected.some(f => f.type.startsWith("image/"))) {
-      if (model === "groq") {
-        setModel("gemini");
-        toast("Switched to Gemini (Groq does not support images).");
-      }
+      toast("Image detected. Switching to Gemini for this request.");
     }
 
     setFiles(prev => [...prev, ...selected]);
@@ -100,7 +95,7 @@ function TutorPage() {
     setLoading(true);
 
     const fd = new FormData();
-    fd.append("model_choice", model);
+    fd.append("model_choice", "groq");
     fd.append("history", JSON.stringify(historyToPass));
     fd.append("message", input);
     files.forEach(f => fd.append("files", f));
@@ -114,11 +109,11 @@ function TutorPage() {
         isForm: true
       });
       setMessages(prev => [...prev, { role: "assistant", content: r.response }]);
-      await refresh();
     } catch (err: any) {
       toast.error(err.message || "Failed to get response");
     } finally {
       setLoading(false);
+      refresh().catch(console.error);
     }
   };
 
@@ -139,18 +134,6 @@ function TutorPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground hidden sm:block">Model</Label>
-            <Select value={model} onValueChange={(val: "gemini" | "groq") => setModel(val)}>
-              <SelectTrigger className="w-[100px] h-8 sm:h-9 text-xs sm:text-sm bg-background">
-                <SelectValue placeholder="Model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gemini">Gemini</SelectItem>
-                <SelectItem value="groq">Groq</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <Button variant="outline" size="sm" onClick={clearChat} className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-muted-foreground hover:text-foreground shrink-0" title="Clear Chat">
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -178,8 +161,8 @@ function TutorPage() {
                   )}
                   <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1`}>
                     <div className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-sm"
-                        : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
+                      ? "bg-primary text-primary-foreground rounded-tr-sm"
+                      : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
                       }`}>
                       {msg.files && msg.files.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-2">
