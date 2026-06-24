@@ -204,6 +204,11 @@ def init_db():
     except Exception:
         conn.rollback()
 
+    try:
+        cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
+    except Exception:
+        conn.rollback()
+
     # ── Card feedback ─────────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS card_feedback (
@@ -1096,6 +1101,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "created_at": s["created_at"],
             "exam_date": s.get("exam_date"),
             "plan_version": s.get("plan_version") or 1,
+            "deleted": s.get("deleted", False),
             "phases": {
                 "syllabus_uploaded": bool(s.get("topics_json")),
                 "plan_generated": bool(s.get("plan_json")),
@@ -1147,7 +1153,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "streak_days": current_user.get("streak_days") or 0,
         },
         "velocity_chart": velocity_chart,
-        "sessions": session_summaries,
+        "sessions": [s for s in session_summaries if not s.get("deleted")],
     }
 
 
@@ -2340,12 +2346,10 @@ def get_session_status(session_id: str, db=Depends(get_db), current_user: dict =
 
 @app.delete("/api/session/{session_id}", tags=["Utility"])
 def delete_session(session_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Delete a session and all its data (owner only)."""
+    """Soft-delete a session (owner only) so analytics remain intact."""
     get_session_for_user(db, session_id, current_user["id"])
     cur = db.cursor()
-    cur.execute("DELETE FROM card_feedback WHERE session_id = %s", (session_id,))
-    cur.execute("DELETE FROM study_events WHERE session_id = %s", (session_id,))
-    cur.execute("DELETE FROM sessions WHERE id = %s", (session_id,))
+    cur.execute("UPDATE sessions SET deleted = TRUE WHERE id = %s", (session_id,))
     db.commit()
     cur.close()
     return {"message": f"Session '{session_id}' deleted."}
