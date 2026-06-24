@@ -2811,8 +2811,8 @@ def generate_extension_flashcards(req: ExtensionFlashcardRequest, current_user: 
         new_cards.append({
             "id": str(uuid.uuid4()),
             "topic": "Web Snippets",
-            "front": c.get("front", ""),
-            "back": c.get("back", ""),
+            "question": c.get("front", ""),
+            "answer": c.get("back", ""),
             "difficulty": "medium",
             "next_review_day": 1
         })
