@@ -21,7 +21,7 @@ interface Message {
 }
 
 function TutorPage() {
-  const [model, setModel] = useState<"gemini" | "groq">("gemini");
+  const [model, setModel] = useState<"gemini" | "groq">("groq");
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [];
     const saved = localStorage.getItem("grasp_tutor_history");
@@ -43,7 +43,7 @@ function TutorPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? []);
     if (files.length + selected.length > 5) return toast.error("Max 5 files allowed");
-    
+
     // Auto-switch to Gemini if an image is selected
     if (selected.some(f => f.type.startsWith("image/"))) {
       if (model === "groq") {
@@ -51,7 +51,7 @@ function TutorPage() {
         toast("Switched to Gemini (Groq does not support images).");
       }
     }
-    
+
     setFiles(prev => [...prev, ...selected]);
     e.target.value = "";
   };
@@ -84,25 +84,25 @@ function TutorPage() {
   const sendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() && files.length === 0) return;
-    
+
     const fileNames = files.map(f => f.name);
-    const newMsg: Message = { 
-      role: "user", 
-      content: input, 
+    const newMsg: Message = {
+      role: "user",
+      content: input,
       ...(fileNames.length > 0 && { files: fileNames })
     };
     const historyToPass = [...messages];
-    
+
     setMessages(prev => [...prev, newMsg]);
     setInput("");
     setLoading(true);
-    
+
     const fd = new FormData();
     fd.append("model_choice", model);
     fd.append("history", JSON.stringify(historyToPass));
     fd.append("message", input);
     files.forEach(f => fd.append("files", f));
-    
+
     setFiles([]); // Clear files after attaching them
 
     try {
@@ -139,12 +139,12 @@ function TutorPage() {
           <div className="flex items-center gap-2">
             <Label className="text-xs text-muted-foreground hidden sm:block">Model</Label>
             <Select value={model} onValueChange={(val: "gemini" | "groq") => setModel(val)}>
-              <SelectTrigger className="w-[180px] h-8 sm:h-9 text-xs sm:text-sm bg-background">
+              <SelectTrigger className="w-[100px] h-8 sm:h-9 text-xs sm:text-sm bg-background">
                 <SelectValue placeholder="Model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gemini">Gemini (Vision + Text)</SelectItem>
-                <SelectItem value="groq">Groq (Text Only)</SelectItem>
+                <SelectItem value="gemini">Gemini</SelectItem>
+                <SelectItem value="groq">Groq</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -156,7 +156,7 @@ function TutorPage() {
 
       <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card">
         <CardContent className="flex flex-col flex-1 p-0 overflow-hidden relative">
-          
+
           {/* Chat Feed */}
           <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 flex flex-col">
             {messages.length === 0 ? (
@@ -170,15 +170,14 @@ function TutorPage() {
                 <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
                     <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
-                      <Bot className="h-4 w-4" />
+                      <Coffee className="h-4 w-4" />
                     </div>
                   )}
                   <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1`}>
-                    <div className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
-                      msg.role === "user" 
-                        ? "bg-primary text-primary-foreground rounded-tr-sm" 
+                    <div className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
                         : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
-                    }`}>
+                      }`}>
                       {msg.files && msg.files.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-2">
                           {msg.files.map((f, idx) => (
@@ -228,7 +227,7 @@ function TutorPage() {
             {loading && (
               <div className="flex gap-3 justify-start">
                 <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
-                  <Bot className="h-4 w-4 animate-pulse" />
+                  <Coffee className="h-4 w-4 animate-pulse" />
                 </div>
                 <div className="bg-muted/50 text-muted-foreground border border-border rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-1">
                   <span className="animate-bounce">●</span>
@@ -259,25 +258,25 @@ function TutorPage() {
                 <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
                 <input type="file" multiple accept=".pdf,.txt,.doc,.docx,image/png,image/jpeg,image/jpg" className="hidden" onChange={handleFileChange} />
               </label>
-              
-              <Input 
+
+              <Input
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask your tutor something..."
                 className="flex-1 h-10 sm:h-12 bg-muted/20 border-border"
                 disabled={loading}
               />
-              
+
               <Button type="button" variant="outline" onClick={startListening} disabled={loading || isListening} className={`h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-foreground border-border bg-muted/30 ${isListening ? "animate-pulse text-red-500" : ""}`}>
                 <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              
+
               <Button type="submit" disabled={loading || (!input.trim() && files.length === 0)} className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0">
                 <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </form>
           </div>
-          
+
         </CardContent>
       </Card>
     </div>

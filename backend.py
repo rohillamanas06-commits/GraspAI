@@ -2567,25 +2567,42 @@ async def tutor_chat(
             )
 
     combined_text = message
-    if file_contents:
-        combined_text = "Here are the contents of the uploaded files:\n" + "\n".join(file_contents) + f"\n\nUser Question: {message}"
+    if file_contents or gemini_parts:
+        combined_text = (
+            "I have uploaded some files (text documents, PDFs, and/or images) for you to analyze. "
+            "Please read and understand all of them to answer my question.\n\n"
+        )
+        if file_contents:
+            combined_text += "--- TEXT/DOCUMENT CONTENTS ---\n" + "\n".join(file_contents) + "\n\n"
+        combined_text += f"User Question: {message}"
 
-    system_prompt = "You are an AI Study Tutor for the GraspAI app. Provide detailed, encouraging, and accurate answers to help the user study."
+    system_prompt = (
+        "You are an AI Study Tutor for the GraspAI app. "
+        "Provide encouraging and accurate answers to help the user study. "
+        "CRITICAL: Keep your answers concise, well-structured, and short. "
+        "Use bullet points or short sentences. DO NOT write long, bulky paragraphs. "
+        "If the user uploads multiple different files (text, pdf, images), analyze all of them together to answer their question."
+    )
 
     if model_choice == "gemini":
-        gemini_messages = [{"role": "user", "parts": [system_prompt]}, {"role": "model", "parts": ["Understood."]}]
+        gemini_messages = [
+            genai.types.Content(role="user", parts=[genai.types.Part.from_text(text=system_prompt)]),
+            genai.types.Content(role="model", parts=[genai.types.Part.from_text(text="Understood.")])
+        ]
         for msg in messages:
-            gemini_messages.append({
-                "role": "model" if msg["role"] == "assistant" else "user",
-                "parts": [msg["content"]]
-            })
+            gemini_messages.append(
+                genai.types.Content(
+                    role="model" if msg["role"] == "assistant" else "user",
+                    parts=[genai.types.Part.from_text(text=msg["content"])]
+                )
+            )
         
         current_parts = []
         if combined_text:
-            current_parts.append(combined_text)
+            current_parts.append(genai.types.Part.from_text(text=combined_text))
         current_parts.extend(gemini_parts)
         
-        gemini_messages.append({"role": "user", "parts": current_parts})
+        gemini_messages.append(genai.types.Content(role="user", parts=current_parts))
         
         try:
             resp = client.models.generate_content(
@@ -2594,7 +2611,10 @@ async def tutor_chat(
             )
             return {"response": resp.text}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            error_msg = str(e)
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                raise HTTPException(status_code=429, detail="High traffic right now. Please switch to Groq.")
+            raise HTTPException(status_code=500, detail=error_msg)
 
     else:
         groq_messages = [{"role": "system", "content": system_prompt}]

@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee, Leaf, GraduationCap } from "lucide-react";
+import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee, Leaf, GraduationCap, User2, ChevronUp } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 
@@ -81,22 +82,42 @@ export function AppSidebar() {
       <SidebarFooter className="pb-6 sm:pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => { toggle(); closeMobile(); }} tooltip={theme === "mocha" ? "Latte mode" : "Mocha mode"}>
-              {theme === "mocha" ? <Leaf className="h-4 w-4" /> : <Coffee className="h-4 w-4" />}
-              {!collapsed && <span>{theme === "mocha" ? "Latte mode" : "Mocha mode"}</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          {!collapsed && user && (
-            <div className="px-2 py-2 text-xs text-muted-foreground">
-              <div className="truncate font-medium text-foreground">{user.full_name || user.email}</div>
-              <div className="truncate">{user.email}</div>
-            </div>
-          )}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={onSignOut} tooltip="Sign out" className="hover:bg-red-500/10 hover:text-red-500">
-              <LogOut className="h-4 w-4" />
-              {!collapsed && <span>Sign out</span>}
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-12"
+                  tooltip="Account"
+                >
+                  <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                    <User2 className="size-4" />
+                  </div>
+                  {!collapsed && user && (
+                    <>
+                      <div className="grid flex-1 text-left text-sm leading-tight ml-2">
+                        <span className="truncate font-semibold">{user.full_name || user.email}</span>
+                        <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                      </div>
+                      <ChevronUp className="ml-auto size-4 text-muted-foreground" />
+                    </>
+                  )}
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side={isMobile ? "bottom" : "right"}
+                align={isMobile ? "end" : "end"}
+                className="w-56 rounded-lg"
+              >
+                <DropdownMenuItem onClick={() => { toggle(); closeMobile(); }} className="cursor-pointer">
+                  {theme === "mocha" ? <Leaf className="mr-2 h-4 w-4" /> : <Coffee className="mr-2 h-4 w-4" />}
+                  {theme === "mocha" ? "Latte mode" : "Mocha mode"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onSignOut} className="text-red-500 cursor-pointer focus:bg-red-500/10 focus:text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
