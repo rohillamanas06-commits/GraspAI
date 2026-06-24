@@ -133,11 +133,6 @@ function TutorPage() {
             Ask study questions, get help with specific topics, or upload materials for explanation.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={clearChat} className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-muted-foreground hover:text-foreground shrink-0" title="Clear Chat">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card">
@@ -243,6 +238,11 @@ function TutorPage() {
               <span>Each message costs 1 credit.</span>
             </div>
             <form onSubmit={sendMessage} className="flex items-end gap-2">
+              {messages.length > 0 && (
+                <Button type="button" variant="outline" onClick={clearChat} title="Clear chat" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-border bg-muted/30 transition">
+                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              )}
               <label className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-md border border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition">
                 <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
                 <input type="file" multiple accept=".pdf,.txt,.doc,.docx,image/png,image/jpeg,image/jpg" className="hidden" onChange={handleFileChange} />
