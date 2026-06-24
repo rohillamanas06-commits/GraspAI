@@ -58,6 +58,18 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - Interactive conversational assistant to explain complex topics and answer doubts on the fly
 - Persists your chat history and context throughout your study session
 
+#### 🗺️ AI Mind Map Generator
+- Instantly convert syllabuses, lecture notes, or textbook chapters into interactive, visual Mind Maps
+- Uses AI to extract key concepts and complex hierarchical relationships
+- Interactive UI powered by React Flow with smooth panning and zooming
+- **HTML Export**: Download fully self-contained HTML maps that perfectly preserve structure and styling for offline viewing
+
+#### 📺 YouTube to Flashcards
+- Paste any YouTube educational video link to automatically generate comprehensive flashcards
+- Automatically extracts and parses video transcripts
+- Uses AI to summarize the key takeaways from the video into Q&A flashcards
+- **HTML Export**: Download beautifully styled flashcards for offline review
+
 #### 📊 Study Analytics Dashboard
 - **Predicted Readiness** - See your confidence levels per topic
 - **Study Velocity** - Track how many flashcards you review each day over the past 7 days
@@ -79,6 +91,7 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - **Tailwind CSS** - Utility-first styling
 - **TanStack Router** - Type-safe file-based routing
 - **Shadcn UI** - Beautifully designed accessible components
+- **React Flow** - Interactive node-based mind map visualizations
   
 ### Backend
 

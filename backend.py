@@ -26,6 +26,8 @@ import genanki
 import nltk
 import psycopg2
 import psycopg2.extras
+from youtube_transcript_api import YouTubeTranscriptApi
+from urllib.parse import urlparse, parse_qs
 
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
@@ -123,12 +125,18 @@ def init_db():
             last_login    TEXT,
             streak_days   INTEGER DEFAULT 0,
             last_studied  TEXT,
-            credits       INTEGER DEFAULT 5
+            credits       INTEGER DEFAULT 5,
+            tutor_state   TEXT
         );
     """)
 
     try:
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 5;")
+    except Exception:
+        conn.rollback()
+
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS tutor_state TEXT;")
     except Exception:
         conn.rollback()
 
@@ -2620,14 +2628,14 @@ async def tutor_chat(
             response_text = resp.text
         except Exception as e:
             error_msg = str(e)
-            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "503" in error_msg or "UNAVAILABLE" in error_msg:
                 use_gemini = False
             else:
                 raise HTTPException(status_code=500, detail=error_msg)
 
     if not use_gemini:
         if has_images:
-            combined_text += "\n\n[System Note: Image uploads were ignored because the vision model is currently experiencing high traffic.]"
+            raise HTTPException(status_code=503, detail="Gemini vision model is busy. Cannot process images right now. Please try again later.")
 
         groq_messages = [{"role": "system", "content": system_prompt}]
         for msg in messages:
@@ -2645,8 +2653,6 @@ async def tutor_chat(
                 temperature=0.7
             )
             response_text = resp.choices[0].message.content
-            if has_images:
-                response_text = "*System Note: Gemini vision model is busy. Fell back to Groq (images were ignored).*\n\n" + response_text
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -2655,7 +2661,265 @@ async def tutor_chat(
     db.commit()
     cur.close()
 
-    return {"response": response_text}
+    return {"response": response_text, "fallback": not use_gemini}
+@app.post("/api/tutor/mindmap")
+async def generate_mindmap(text: str = Form(""), file: Optional[UploadFile] = File(None), current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute("SELECT credits FROM users WHERE id = %s", (current_user["id"],))
+    user_row = cur.fetchone()
+    if not user_row or user_row["credits"] < 1:
+        cur.close()
+        raise HTTPException(status_code=402, detail="Insufficient credits")
+
+    extracted_text = text
+    if file and file.filename:
+        content = await file.read()
+        filename = file.filename.lower()
+        if filename.endswith(".pdf"):
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page in pdf.pages:
+                    ext = page.extract_text()
+                    if ext: extracted_text += "\n" + ext
+        elif filename.endswith(".txt"):
+            extracted_text += "\n" + content.decode('utf-8', errors='ignore')
+        elif filename.endswith(".docx") or filename.endswith(".doc"):
+            import docx
+            doc = docx.Document(io.BytesIO(content))
+            extracted_text += "\n" + "\n".join([p.text for p in doc.paragraphs])
+
+    if not extracted_text.strip():
+        cur.close()
+        raise HTTPException(status_code=400, detail="No text provided")
+
+    prompt = (
+        "Convert the following syllabus or text into a highly detailed, comprehensive mind map. "
+        "Extract major topics, subtopics, key concepts, definitions, and important relationships.\n"
+        "Return a JSON object with two keys: 'nodes' and 'edges'.\n"
+        "Nodes should be an array of objects: { 'id': 'string', 'data': { 'label': 'string' }, 'position': { 'x': number, 'y': number } }.\n"
+        "Edges should be an array of objects: { 'id': 'string', 'source': 'string', 'target': 'string' }.\n"
+        "REQUIREMENTS:\n"
+        "- Generate at least 15-30 nodes if the text permits, breaking concepts down to a granular level.\n"
+        "- Structure it clearly: A central root node, branching to main topics, then to subtopics, and finally to specific details.\n"
+        "- Ensure node IDs are unique strings.\n"
+        "- Ensure no edge points to a non-existent node.\n"
+        "- Position the nodes visually spaced out using their x,y coordinates (e.g., center root at 0,0, spread branches outwards significantly to avoid overlapping).\n\n"
+        f"TEXT:\n{extracted_text}"
+    )
+
+    result = call_llm_json(prompt)
+    
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+    
+    return {"mindmap": result}
+
+
+class YouTubeRequest(BaseModel):
+    url: str
+
+@app.post("/api/tutor/youtube")
+def generate_youtube_flashcards(req: YouTubeRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute("SELECT credits FROM users WHERE id = %s", (current_user["id"],))
+    user_row = cur.fetchone()
+    if not user_row or user_row["credits"] < 1:
+        cur.close()
+        raise HTTPException(status_code=402, detail="Insufficient credits")
+
+    video_id = None
+    if "youtu.be" in req.url:
+        video_id = req.url.split("/")[-1].split("?")[0]
+    elif "youtube" in req.url:
+        parsed_url = urlparse(req.url)
+        video_id = parse_qs(parsed_url.query).get("v", [None])[0]
+
+    if not video_id:
+        cur.close()
+        raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+
+    try:
+        yt_api = YouTubeTranscriptApi()
+        try:
+            transcript = yt_api.fetch(video_id, languages=["en", "hi", "es", "fr", "de", "ja", "ko", "pt", "zh-Hans"])
+        except Exception:
+            # Fallback: list all transcripts and pick the first available one
+            transcript_list = yt_api.list(video_id)
+            first_transcript = next(iter(transcript_list))
+            transcript = first_transcript.fetch()
+        transcript_text = " ".join([t.text for t in transcript])
+    except Exception as e:
+        cur.close()
+        raise HTTPException(status_code=400, detail=f"Could not fetch transcript: {str(e)}")
+
+    prompt = (
+        "Summarize the following video transcript and generate flashcards covering key concepts. "
+        "Return a JSON object with a single key 'flashcards' containing an array where each object has 'front' (question/term) and 'back' (answer/definition).\n"
+        f"TRANSCRIPT:\n{transcript_text[:15000]}"
+    )
+
+    flashcards_json = call_llm_json(prompt)
+    
+    # Extract the array from the JSON object
+    flashcards_array = flashcards_json.get("flashcards", []) if isinstance(flashcards_json, dict) else flashcards_json
+
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+
+    return {"message": "Flashcards generated successfully", "flashcards": flashcards_array}
+
+
+class FlashcardsDownloadRequest(BaseModel):
+    flashcards: list[dict]
+
+@app.post("/api/tutor/youtube/download-html")
+def download_flashcards_html(req: FlashcardsDownloadRequest, current_user: dict = Depends(get_current_user)):
+    """Generate a beautiful HTML file of flashcards for download."""
+    cards = req.flashcards
+    
+    cards_html = ""
+    for i, card in enumerate(cards, 1):
+        front = card.get("front", "")
+        back = card.get("back", "")
+        cards_html += f"""
+        <div class="card">
+            <div class="card-number">#{i}</div>
+            <div class="card-front">
+                <span class="label">Q:</span> {front}
+            </div>
+            <div class="card-back">
+                <span class="label">A:</span> {back}
+            </div>
+        </div>"""
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraspAI — YouTube Flashcards</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f5f0e8;
+            color: #3d2e1f;
+            padding: 40px 20px;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 40px;
+        }}
+        .header h1 {{
+            font-size: 28px;
+            color: #5c3d2e;
+            margin-bottom: 8px;
+        }}
+        .header p {{
+            color: #8b7355;
+            font-size: 14px;
+        }}
+        .cards-container {{
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }}
+        .card {{
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #8b6914;
+            position: relative;
+        }}
+        .card-number {{
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 12px;
+            color: #b8a080;
+            font-weight: 600;
+        }}
+        .card-front {{
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8dfd3;
+        }}
+        .card-back {{
+            font-size: 14px;
+            color: #5c4a3a;
+            line-height: 1.6;
+        }}
+        .label {{
+            display: inline-block;
+            font-weight: 700;
+            color: #8b6914;
+            margin-right: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 40px;
+            color: #b8a080;
+            font-size: 12px;
+        }}
+        @media print {{
+            body {{ background: white; padding: 20px; }}
+            .card {{ box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>☕ GraspAI — YouTube Flashcards</h1>
+        <p>{len(cards)} flashcards generated from your video</p>
+    </div>
+    <div class="cards-container">
+        {cards_html}
+    </div>
+    <div class="footer">
+        Generated by GraspAI — Study, brewed. | Print this page for offline review
+    </div>
+</body>
+</html>"""
+    
+    return StreamingResponse(
+        io.BytesIO(html_content.encode("utf-8")),
+        media_type="text/html",
+        headers={"Content-Disposition": "attachment; filename=flashcards.html"}
+    )
+
+class TutorStateRequest(BaseModel):
+    state: dict
+
+@app.get("/api/tutor/state")
+def get_tutor_state(current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT tutor_state FROM users WHERE id = %s", (current_user["id"],))
+    row = cur.fetchone()
+    cur.close()
+    
+    if not row or not row["tutor_state"]:
+        return {"state": None}
+    
+    import json
+    return {"state": json.loads(row["tutor_state"])}
+
+@app.post("/api/tutor/state")
+def save_tutor_state(req: TutorStateRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    import json
+    cur = db.cursor()
+    state_str = json.dumps(req.state)
+    cur.execute("UPDATE users SET tutor_state = %s WHERE id = %s", (state_str, current_user["id"]))
+    db.commit()
+    cur.close()
+    return {"message": "State saved"}
 
 
 if __name__ == "__main__":

@@ -199,3 +199,13 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
+
+/* Fullscreen mind map support */
+:fullscreen {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+::backdrop {
+  background-color: var(--color-background);
+}

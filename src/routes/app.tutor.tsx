@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TutorMindMap } from "@/components/TutorMindMap";
+import { TutorYouTube } from "@/components/TutorYouTube";
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,11 +26,27 @@ interface Message {
 
 function TutorPage() {
   const { user, refresh } = useAuth();
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === "undefined") return [];
-    const saved = localStorage.getItem("grasp_tutor_history");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [tutorState, setTutorState] = useState<any>({});
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    api<{ state: any }>("/api/tutor/state").then(res => {
+      if (res.state) {
+        setTutorState(res.state);
+        if (res.state.chat) setMessages(res.state.chat);
+      }
+      setIsLoaded(true);
+    }).catch(err => {
+      console.error(err);
+      setIsLoaded(true);
+    });
+  }, []);
+
+  const saveTutorState = (newState: any) => {
+    setTutorState(newState);
+    api("/api/tutor/state", { method: "POST", body: { state: newState } }).catch(console.error);
+  };
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,9 +56,10 @@ function TutorPage() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem("grasp_tutor_history", JSON.stringify(messages));
+    if (!isLoaded) return;
+    saveTutorState({ ...tutorState, chat: messages });
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoaded]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? []);
@@ -103,11 +123,16 @@ function TutorPage() {
     setFiles([]); // Clear files after attaching them
 
     try {
-      const r = await api<{ response: string }>("/api/tutor/chat", {
+      const r = await api<{ response: string; fallback?: boolean }>("/api/tutor/chat", {
         method: "POST",
         body: fd,
         isForm: true
       });
+      
+      if (r.fallback) {
+        toast.info("Gemini not available, switched to Groq");
+      }
+      
       setMessages(prev => [...prev, { role: "assistant", content: r.response }]);
     } catch (err: any) {
       toast.error(err.message || "Failed to get response");
@@ -135,7 +160,15 @@ function TutorPage() {
         </div>
       </div>
 
-      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card">
+      {isLoaded ? (
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-3 mb-4 shrink-0">
+          <TabsTrigger value="chat">Chat</TabsTrigger>
+          <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
+          <TabsTrigger value="youtube">YouTube</TabsTrigger>
+        </TabsList>
+        <TabsContent value="chat" className="flex-1 m-0 flex flex-col min-h-0">
+          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card mt-0">
         <CardContent className="flex flex-col flex-1 p-0 overflow-hidden relative">
 
           {/* Chat Feed */}
@@ -268,6 +301,23 @@ function TutorPage() {
 
         </CardContent>
       </Card>
+        </TabsContent>
+        <TabsContent value="mindmap" className="flex-1 m-0 flex flex-col min-h-0">
+          <TutorMindMap initialState={tutorState.mindmap} onSave={(mm) => saveTutorState({ ...tutorState, mindmap: mm })} />
+        </TabsContent>
+        <TabsContent value="youtube" className="flex-1 m-0 flex flex-col min-h-0">
+          <TutorYouTube initialState={tutorState.youtube} onSave={(yt) => saveTutorState({ ...tutorState, youtube: yt })} />
+        </TabsContent>
+      </Tabs>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 min-h-0">
+          <div className="relative">
+            <Coffee className="h-16 w-16 text-primary/80 animate-pulse" />
+          </div>
+          <h2 className="text-xl font-semibold">Brewing your AI Tutor...</h2>
+          <p className="text-muted-foreground text-sm">Please wait while we prepare your personalized study environment.</p>
+        </div>
+      )}
     </div>
   );
 }
