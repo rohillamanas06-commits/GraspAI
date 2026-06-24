@@ -93,12 +93,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ text, session_id: sessionId })
       });
 
-      const text = await res.text();
+      const responseText = await res.text();
       let data;
       try {
-        data = JSON.parse(text);
+        data = JSON.parse(responseText);
       } catch (err) {
-        throw new Error(`Backend returned non-JSON (${res.status}): ${text.substring(0, 50)}`);
+        throw new Error(`Backend returned non-JSON (${res.status}): ${responseText.substring(0, 50)}`);
       }
 
       if (!res.ok) throw new Error(data.detail || `Failed to generate flashcards (${res.status})`);
@@ -133,12 +133,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         return showLoginView();
       }
 
-      const text = await res.text();
+      const responseText = await res.text();
       let data;
       try {
-        data = JSON.parse(text);
+        data = JSON.parse(responseText);
       } catch (err) {
-        throw new Error(`Backend returned non-JSON (${res.status}): ${text.substring(0, 50)}`);
+        throw new Error(`Backend returned non-JSON (${res.status}): ${responseText.substring(0, 50)}`);
       }
       creditsCount.textContent = data.user?.credits ?? 0;
 
