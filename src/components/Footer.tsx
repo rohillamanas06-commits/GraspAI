@@ -4,8 +4,8 @@ import { Github, Linkedin, Mail } from "lucide-react";
 export function Footer() {
   return (
     <footer className="w-full bg-black text-white/80 py-16 px-6 sm:px-10 border-t border-white/10">
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-        <div className="lg:col-span-1 space-y-4">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10">
+        <div className="lg:col-span-2 space-y-4">
           <h3 className="font-serif text-lg tracking-[0.18em] text-white">GRASP AI</h3>
           <p className="text-sm text-white/60 leading-relaxed">
             An advanced AI-powered study assistant platform turning your syllabus into adaptive plans and flashcards.
