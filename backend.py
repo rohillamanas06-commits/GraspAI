@@ -195,12 +195,18 @@ def init_db():
             flashcards_json TEXT,
             plan_version    INTEGER DEFAULT 1,
             exam_date       TEXT,
-            past_papers_json TEXT
+            past_papers_json TEXT,
+            deleted         BOOLEAN DEFAULT FALSE
         );
     """)
 
     try:
         cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS past_papers_json TEXT;")
+    except Exception:
+        conn.rollback()
+
+    try:
+        cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
     except Exception:
         conn.rollback()
 
@@ -509,7 +515,7 @@ def get_current_user(
 def get_session_for_user(conn, session_id: str, user_id: str) -> dict:
     """Like get_session() but also enforces ownership."""
     cur = conn.cursor()
-    cur.execute("SELECT * FROM sessions WHERE id = %s", (session_id,))
+    cur.execute("SELECT * FROM sessions WHERE id = %s AND deleted = FALSE", (session_id,))
     row = cur.fetchone()
     cur.close()
     if not row:
@@ -1090,8 +1096,9 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
         total_topics_mastered += mastered
         total_cards_all += len(flashcards)
 
-        session_summaries.append({
-            "session_id": sid,
+        if not s.get("deleted"):
+            session_summaries.append({
+                "session_id": sid,
             "session_name": s.get("session_name") or f"Session {sid[-6:]}",
             "created_at": s["created_at"],
             "exam_date": s.get("exam_date"),
@@ -2340,12 +2347,10 @@ def get_session_status(session_id: str, db=Depends(get_db), current_user: dict =
 
 @app.delete("/api/session/{session_id}", tags=["Utility"])
 def delete_session(session_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Delete a session and all its data (owner only)."""
+    """Soft delete a session to preserve historical insights (owner only)."""
     get_session_for_user(db, session_id, current_user["id"])
     cur = db.cursor()
-    cur.execute("DELETE FROM card_feedback WHERE session_id = %s", (session_id,))
-    cur.execute("DELETE FROM study_events WHERE session_id = %s", (session_id,))
-    cur.execute("DELETE FROM sessions WHERE id = %s", (session_id,))
+    cur.execute("UPDATE sessions SET deleted = TRUE WHERE id = %s", (session_id,))
     db.commit()
     cur.close()
     return {"message": f"Session '{session_id}' deleted."}
