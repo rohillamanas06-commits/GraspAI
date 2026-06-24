@@ -31,7 +31,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -1254,13 +1254,13 @@ def update_session_name(session_id: str, req: SessionNameRequest, current_user: 
 
 @app.post("/api/syllabus/upload", response_model=SyllabusResponse, tags=["Phase 1 — Syllabus"])
 async def upload_syllabus(
-    file: UploadFile = File(...),
+    files: list[UploadFile] = File(...),
     session_name: Optional[str] = None,
     db=Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Upload a syllabus PDF.
+    Upload up to 10 syllabus PDFs.
     - pdfplumber extracts raw text
     - Gemini parses topics/subtopics/difficulty into structured JSON
     - Returns session_id used in all subsequent calls
@@ -1269,24 +1269,28 @@ async def upload_syllabus(
     if user_credits < 1:
         raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required to start a new session.")
 
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+    if len(files) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 PDFs allowed.")
 
-    content = await file.read()
     raw_text = ""
-    try:
-        with pdfplumber.open(io.BytesIO(content)) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    raw_text += text + "\n"
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=f"PDF parsing failed: {str(e)}")
+    for file in files:
+        if not file.filename.endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+
+        content = await file.read()
+        try:
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        raw_text += text + "\n"
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"PDF parsing failed for {file.filename}: {str(e)}")
 
     if len(raw_text.strip()) < 50:
         raise HTTPException(
             status_code=422,
-            detail="PDF appears to be scanned/image-based or empty. Text extraction failed."
+            detail="PDF(s) appear to be scanned/image-based or empty. Text extraction failed."
         )
 
     prompt = f"""
@@ -2252,6 +2256,50 @@ def export_plan_svg(req: ExportRequest, db=Depends(get_db), current_user: dict =
         headers={"Content-Disposition": f"attachment; filename=studyplan_{req.session_id}.svg"}
     )
 
+def _build_ics(plan: list[dict]) -> str:
+    import uuid
+    from datetime import datetime, timedelta
+    
+    ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//GraspAI//Study Plan//EN"
+    ]
+    for day in plan:
+        dt_str = day['date'].replace("-", "")
+        dt_obj = datetime.strptime(day['date'], "%Y-%m-%d")
+        dtend_obj = dt_obj + timedelta(days=1)
+        dtend_str = dtend_obj.strftime("%Y%m%d")
+        
+        topics = ", ".join(day.get('topics', []))
+        hours = day.get('estimated_hours', 0)
+        
+        ics.append("BEGIN:VEVENT")
+        ics.append(f"UID:{uuid.uuid4()}@graspai.com")
+        ics.append(f"DTSTAMP:{datetime.now().strftime('%Y%m%dT%H%M%SZ')}")
+        ics.append(f"DTSTART;VALUE=DATE:{dt_str}")
+        ics.append(f"DTEND;VALUE=DATE:{dtend_str}")
+        ics.append(f"SUMMARY:Study: {topics}")
+        ics.append(f"DESCRIPTION:Estimated Hours: {hours}h\\nTopics: {topics}")
+        ics.append("END:VEVENT")
+    
+    ics.append("END:VCALENDAR")
+    return "\r\n".join(ics)
+
+@app.post("/api/plan/export/ics", tags=["Phase 2 — Study Plan"])
+def export_plan_ics(req: ExportRequest, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Export the study plan as an iCalendar (.ics) file."""
+    row = get_session_for_user(db, req.session_id, current_user["id"])
+    if not row["plan_json"]:
+        raise HTTPException(status_code=400, detail="Generate study plan first.")
+    plan = json.loads(row["plan_json"])
+    ics_str = _build_ics(plan)
+    return StreamingResponse(
+        io.BytesIO(ics_str.encode("utf-8")),
+        media_type="text/calendar",
+        headers={"Content-Disposition": f"attachment; filename=studyplan_{req.session_id}.ics"}
+    )
+
 
 # ─────────────────────────────────────────────
 # UTILITY
@@ -2470,6 +2518,107 @@ def verify_payment(req: VerifyPaymentRequest, db=Depends(get_db), current_user: 
         "message": "Payment verified successfully",
         "credits_added": payment_order["credits"]
     }
+
+
+# ─────────────────────────────────────────────
+# AI TUTOR
+# ─────────────────────────────────────────────
+
+@app.post("/api/tutor/chat", tags=["Tutor"])
+async def tutor_chat(
+    model_choice: str = Form(...),
+    history: str = Form(...),
+    message: str = Form(...),
+    files: list[UploadFile] = File(default=[]),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Process AI Tutor chat with multi-modal support.
+    """
+    import docx
+
+    messages = json.loads(history)
+    file_contents = []
+    gemini_parts = []
+    has_images = False
+
+    for file in files:
+        if not file.filename:
+            continue
+        content = await file.read()
+        filename = file.filename.lower()
+        if filename.endswith(".pdf"):
+            text = ""
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page in pdf.pages:
+                    ext = page.extract_text()
+                    if ext: text += ext + "\n"
+            file_contents.append(f"--- File: {file.filename} ---\n{text}")
+        elif filename.endswith(".txt"):
+            file_contents.append(f"--- File: {file.filename} ---\n{content.decode('utf-8', errors='ignore')}")
+        elif filename.endswith(".docx") or filename.endswith(".doc"):
+            doc = docx.Document(io.BytesIO(content))
+            text = "\n".join([p.text for p in doc.paragraphs])
+            file_contents.append(f"--- File: {file.filename} ---\n{text}")
+        elif filename.endswith(".png") or filename.endswith(".jpg") or filename.endswith(".jpeg"):
+            has_images = True
+            gemini_parts.append(
+                genai.types.Part.from_bytes(data=content, mime_type=file.content_type)
+            )
+
+    combined_text = message
+    if file_contents:
+        combined_text = "Here are the contents of the uploaded files:\n" + "\n".join(file_contents) + f"\n\nUser Question: {message}"
+
+    system_prompt = "You are an AI Study Tutor for the GraspAI app. Provide detailed, encouraging, and accurate answers to help the user study."
+
+    if model_choice == "gemini":
+        gemini_messages = [{"role": "user", "parts": [system_prompt]}, {"role": "model", "parts": ["Understood."]}]
+        for msg in messages:
+            gemini_messages.append({
+                "role": "model" if msg["role"] == "assistant" else "user",
+                "parts": [msg["content"]]
+            })
+        
+        current_parts = []
+        if combined_text:
+            current_parts.append(combined_text)
+        current_parts.extend(gemini_parts)
+        
+        gemini_messages.append({"role": "user", "parts": current_parts})
+        
+        try:
+            resp = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=gemini_messages
+            )
+            return {"response": resp.text}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    else:
+        groq_messages = [{"role": "system", "content": system_prompt}]
+        for msg in messages:
+            groq_messages.append({"role": msg["role"], "content": msg["content"]})
+        
+        if has_images:
+            raise HTTPException(status_code=400, detail="Groq model currently does not support images in this setup. Please switch to Gemini.")
+
+        groq_messages.append({"role": "user", "content": combined_text})
+        
+        if not groq_client:
+            raise HTTPException(status_code=400, detail="Groq API key not configured")
+            
+        try:
+            resp = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=groq_messages,
+                temperature=0.7
+            )
+            return {"response": resp.choices[0].message.content}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

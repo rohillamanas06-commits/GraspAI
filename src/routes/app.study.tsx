@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
-import { Check, X, SkipForward, Upload, Download, Pencil } from "lucide-react";
+import { Check, X, SkipForward, Upload, Download, Pencil, Volume2, VolumeX, CalendarDays } from "lucide-react";
 import { CoffeeLoading } from "@/components/ui/coffee-loading";
 import { useAuth } from "@/lib/auth";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
@@ -177,16 +177,16 @@ function StudyPage() {
 
 /* ───── Upload ───── */
 function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const { refresh, user } = useAuth();
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
   const submit = async () => {
-    if (!file) return toast.error("Choose a PDF first");
+    if (files.length === 0) return toast.error("Choose a PDF first");
     const fd = new FormData();
-    fd.append("file", file);
+    files.forEach(f => fd.append("files", f));
     setLoading(true);
     try {
       const url = name ? `/api/syllabus/upload?session_name=${encodeURIComponent(name)}` : "/api/syllabus/upload";
@@ -210,16 +210,33 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
           <Input className="h-8 sm:h-10 text-xs sm:text-sm" placeholder="e.g. Spring midterm" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col min-h-0 min-h-[120px]">
-          <Label className="text-xs sm:text-sm">PDF file</Label>
+          <Label className="text-xs sm:text-sm">PDF file(s) - Max 10</Label>
           <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
             <Upload className="h-4 w-4" />
-            <span className="text-center">{file ? file.name : "Click to choose a PDF"}</span>
-            <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <span className="text-center">{files.length > 0 ? `${files.length} file(s) selected` : "Click to choose PDF(s) (Ctrl+Click to select many)"}</span>
+            <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => {
+              const selected = Array.from(e.target.files ?? []);
+              if (files.length + selected.length > 10) return toast.error("Maximum 10 PDFs allowed");
+              setFiles(prev => [...prev, ...selected]);
+              e.target.value = "";
+            }} />
           </label>
+          {files.length > 0 && (
+            <div className="mt-2 flex flex-col gap-1 overflow-auto max-h-[80px]">
+              {files.map((f, i) => (
+                <div key={i} className="text-[10px] sm:text-xs text-muted-foreground flex items-center justify-between bg-muted/30 px-2 py-1 rounded">
+                  <span className="truncate">{f.name}</span>
+                  <button onClick={() => setFiles(files.filter((_, idx) => idx !== i))} className="hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <Button 
           onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : submit())} 
-          disabled={(user?.credits !== 0 && !file) || loading} 
+          disabled={(user?.credits !== 0 && files.length === 0) || loading} 
           className="w-full shrink-0 h-8 sm:h-10 text-xs sm:text-sm"
           variant={user?.credits === 0 ? "secondary" : "default"}
         >
@@ -330,7 +347,23 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
           <div className="flex gap-2">
             <Button onClick={generate} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">{loading ? "Planning…" : planData?.plan ? "Regenerate" : "Generate plan"}</Button>
             {planData?.plan && (
-              <Button onClick={onDone} variant="secondary" className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">Continue to cards</Button>
+              <>
+                <Button onClick={onDone} variant="secondary" className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">Continue to cards</Button>
+                <Button onClick={() => {
+                  const url = `${API_BASE}/api/plan/export/ics`;
+                  fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken()}` }, body: JSON.stringify({ session_id: sessionId }) })
+                    .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
+                    .then(blob => {
+                      const a = document.createElement("a");
+                      a.href = URL.createObjectURL(blob);
+                      a.download = `studyplan-${sessionId}.ics`;
+                      a.click();
+                    })
+                    .catch(() => toast.error("Failed to export calendar"));
+                }} variant="outline" className="flex-none h-8 sm:h-10 px-3 text-xs sm:text-sm" title="Export to Calendar">
+                  <CalendarDays className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
 
@@ -387,6 +420,7 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
 function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () => void }) {
   const [cardsPerTopic, setCardsPerTopic] = useState(3);
   const [loading, setLoading] = useState(false);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, Feedback>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -517,8 +551,24 @@ function FlashcardsPanel({ sessionId, onDone }: { sessionId: string; onDone: () 
                 return (
                   <div key={i} className="rounded-md border border-border bg-card p-3 sm:p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <Badge variant="secondary" className="text-[9px] sm:text-[10px]">{c.topic}</Badge>
-                      <Badge variant="outline" className="text-[9px] sm:text-[10px] capitalize">{c.difficulty}</Badge>
+                      <div className="flex gap-2 items-center">
+                        <Badge variant="secondary" className="text-[9px] sm:text-[10px]">{c.topic}</Badge>
+                        <Badge variant="outline" className="text-[9px] sm:text-[10px] capitalize">{c.difficulty}</Badge>
+                      </div>
+                      <button onClick={() => {
+                        if (playingId === key) {
+                          window.speechSynthesis.cancel();
+                          setPlayingId(null);
+                        } else {
+                          window.speechSynthesis.cancel();
+                          const ut = new SpeechSynthesisUtterance(open ? c.answer : c.question);
+                          ut.onend = () => setPlayingId(null);
+                          window.speechSynthesis.speak(ut);
+                          setPlayingId(key);
+                        }
+                      }} className="text-muted-foreground hover:text-foreground">
+                        {playingId === key ? <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" /> : <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />}
+                      </button>
                     </div>
                     <p className="mt-2 text-xs sm:text-sm font-medium text-foreground">{c.question}</p>
                     {open ? (

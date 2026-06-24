@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppTutorRouteImport } from './routes/app.tutor'
 import { Route as AppStudyRouteImport } from './routes/app.study'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as LegalTermsRouteImport } from './routes/_legal.terms'
@@ -54,6 +55,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTutorRoute = AppTutorRouteImport.update({
+  id: '/tutor',
+  path: '/tutor',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppStudyRoute = AppStudyRouteImport.update({
   id: '/study',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
+  '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
+  '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/_legal/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/study': typeof AppStudyRoute
+  '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/app/dashboard'
     | '/app/study'
+    | '/app/tutor'
     | '/auth/login'
     | '/auth/register'
     | '/app/'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/app/dashboard'
     | '/app/study'
+    | '/app/tutor'
     | '/auth/login'
     | '/auth/register'
     | '/app'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/_legal/terms'
     | '/app/dashboard'
     | '/app/study'
+    | '/app/tutor'
     | '/auth/login'
     | '/auth/register'
     | '/app/'
@@ -265,6 +277,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/tutor': {
+      id: '/app/tutor'
+      path: '/tutor'
+      fullPath: '/app/tutor'
+      preLoaderRoute: typeof AppTutorRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/study': {
       id: '/app/study'
@@ -362,6 +381,7 @@ const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppStudyRoute: typeof AppStudyRoute
+  AppTutorRoute: typeof AppTutorRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSessionsSessionIdPastPapersRoute: typeof AppSessionsSessionIdPastPapersRoute
   AppSessionsSessionIdIndexRoute: typeof AppSessionsSessionIdIndexRoute
@@ -370,6 +390,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppStudyRoute: AppStudyRoute,
+  AppTutorRoute: AppTutorRoute,
   AppIndexRoute: AppIndexRoute,
   AppSessionsSessionIdPastPapersRoute: AppSessionsSessionIdPastPapersRoute,
   AppSessionsSessionIdIndexRoute: AppSessionsSessionIdIndexRoute,
