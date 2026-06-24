@@ -26,6 +26,7 @@ import { Route as LegalFaqRouteImport } from './routes/_legal.faq'
 import { Route as LegalCookiesRouteImport } from './routes/_legal.cookies'
 import { Route as LegalAboutRouteImport } from './routes/_legal.about'
 import { Route as AppSessionsSessionIdIndexRouteImport } from './routes/app.sessions.$sessionId.index'
+import { Route as AppSessionsSessionIdReviewRouteImport } from './routes/app.sessions.$sessionId.review'
 import { Route as AppSessionsSessionIdPastPapersRouteImport } from './routes/app.sessions.$sessionId.past-papers'
 
 const AppRoute = AppRouteImport.update({
@@ -113,6 +114,12 @@ const AppSessionsSessionIdIndexRoute =
     path: '/sessions/$sessionId/',
     getParentRoute: () => AppRoute,
   } as any)
+const AppSessionsSessionIdReviewRoute =
+  AppSessionsSessionIdReviewRouteImport.update({
+    id: '/sessions/$sessionId/review',
+    path: '/sessions/$sessionId/review',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppSessionsSessionIdPastPapersRoute =
   AppSessionsSessionIdPastPapersRouteImport.update({
     id: '/sessions/$sessionId/past-papers',
@@ -137,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId/review': typeof AppSessionsSessionIdReviewRoute
   '/app/sessions/$sessionId/': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -155,6 +163,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
   '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId/review': typeof AppSessionsSessionIdReviewRoute
   '/app/sessions/$sessionId': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRoutesById {
@@ -176,6 +185,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
   '/app/sessions/$sessionId/past-papers': typeof AppSessionsSessionIdPastPapersRoute
+  '/app/sessions/$sessionId/review': typeof AppSessionsSessionIdReviewRoute
   '/app/sessions/$sessionId/': typeof AppSessionsSessionIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app/'
     | '/app/sessions/$sessionId/past-papers'
+    | '/app/sessions/$sessionId/review'
     | '/app/sessions/$sessionId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app'
     | '/app/sessions/$sessionId/past-papers'
+    | '/app/sessions/$sessionId/review'
     | '/app/sessions/$sessionId'
   id:
     | '__root__'
@@ -235,6 +247,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/app/'
     | '/app/sessions/$sessionId/past-papers'
+    | '/app/sessions/$sessionId/review'
     | '/app/sessions/$sessionId/'
   fileRoutesById: FileRoutesById
 }
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSessionsSessionIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sessions/$sessionId/review': {
+      id: '/app/sessions/$sessionId/review'
+      path: '/sessions/$sessionId/review'
+      fullPath: '/app/sessions/$sessionId/review'
+      preLoaderRoute: typeof AppSessionsSessionIdReviewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/sessions/$sessionId/past-papers': {
       id: '/app/sessions/$sessionId/past-papers'
       path: '/sessions/$sessionId/past-papers'
@@ -404,6 +424,7 @@ interface AppRouteChildren {
   AppTutorRoute: typeof AppTutorRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSessionsSessionIdPastPapersRoute: typeof AppSessionsSessionIdPastPapersRoute
+  AppSessionsSessionIdReviewRoute: typeof AppSessionsSessionIdReviewRoute
   AppSessionsSessionIdIndexRoute: typeof AppSessionsSessionIdIndexRoute
 }
 
@@ -414,6 +435,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTutorRoute: AppTutorRoute,
   AppIndexRoute: AppIndexRoute,
   AppSessionsSessionIdPastPapersRoute: AppSessionsSessionIdPastPapersRoute,
+  AppSessionsSessionIdReviewRoute: AppSessionsSessionIdReviewRoute,
   AppSessionsSessionIdIndexRoute: AppSessionsSessionIdIndexRoute,
 }
 

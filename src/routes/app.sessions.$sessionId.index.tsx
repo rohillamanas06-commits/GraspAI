@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/app/sessions/$sessionId/")({
   head: () => ({ meta: [{ title: "Session — GraspAI" }] }),
@@ -21,6 +22,13 @@ function SessionPage() {
     queryKey: ["session-dash", sessionId],
     queryFn: () => api<any>(`/api/dashboard/session/${sessionId}`),
   });
+
+  const { data: reviewData } = useQuery({
+    queryKey: ["review-queue", sessionId],
+    queryFn: () => api<any>(`/api/flashcards/review-queue/${sessionId}`).catch(() => null),
+  });
+
+  const dueCount = reviewData?.cards_due || 0;
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Loading session…</div>;
   if (error) return <div className="p-8 text-destructive">Could not load session.</div>;
@@ -42,15 +50,23 @@ function SessionPage() {
   return (
     <div className="w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-10">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">{data.session_name || `Session ${sessionId.slice(-6)}`}</h1>
-          {data.exam_date && (
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-              Exam {data.exam_date}{typeof data.days_remaining === "number" && ` · ${data.days_remaining} days remaining`}
-            </p>
-          )}
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/app/dashboard"><ArrowLeft className="h-5 w-5" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">{data.session_name || `Session ${sessionId.slice(-6)}`}</h1>
+            {data.exam_date && (
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                Exam {data.exam_date}{typeof data.days_remaining === "number" && ` · ${data.days_remaining} days remaining`}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
+          <Button size="sm" variant={dueCount > 0 ? "default" : "outline"} className={`sm:size-default ${dueCount > 0 ? "animate-pulse" : ""}`} onClick={() => navigate({ to: '/app/sessions/$sessionId/review', params: { sessionId } })}>
+            Review ({dueCount} Due)
+          </Button>
           <Button variant="secondary" size="sm" className="sm:size-default" onClick={() => navigate({ to: '/app/sessions/$sessionId/past-papers', params: { sessionId } })}>
             Past Papers
           </Button>
