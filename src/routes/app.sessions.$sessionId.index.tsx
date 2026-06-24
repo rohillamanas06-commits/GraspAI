@@ -115,7 +115,9 @@ function SessionPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <div className="text-sm font-medium text-foreground">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.subject} · {t.cards} cards · {t.feedback_count} rated</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.subject} &middot; {t.cards === 0 ? "no cards generated" : `${t.cards} cards \u00B7 ${t.feedback_count || 0} rated`}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="capitalize">{t.difficulty}</Badge>

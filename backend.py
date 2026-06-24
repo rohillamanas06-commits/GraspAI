@@ -328,6 +328,7 @@ class GeneratedQuestion(BaseModel):
 
 class PastPapersGenerateRequest(BaseModel):
     exam_type: str
+    num_questions: int = Field(default=6, ge=6, le=20)
 
 class PastPapersResponse(BaseModel):
     session_id: str
@@ -1493,7 +1494,7 @@ You are an expert examiner for Indian competitive exams.
 The user is preparing for: {req.exam_type}.
 Their syllabus topics are: {topics_json}
 
-Generate exactly 5 highly realistic past-paper questions for these topics, matching the typical difficulty and style of {req.exam_type}.
+Generate exactly {req.num_questions} highly realistic past-paper questions for these topics, matching the typical difficulty and style of {req.exam_type}.
 Do not write long introductions. Be specific and accurate.
 
 Return ONLY a JSON object with this exact structure:
@@ -1842,7 +1843,12 @@ def get_review_queue(session_id: str, day_offset: int = 0, db=Depends(get_db), c
     """
     row = get_session_for_user(db, session_id, current_user["id"])
     if not row["flashcards_json"]:
-        raise HTTPException(status_code=404, detail="No flashcards generated yet.")
+        return {
+            "session_id": session_id,
+            "day_offset": day_offset,
+            "cards_due": 0,
+            "cards": [],
+        }
 
     all_cards = json.loads(row["flashcards_json"])
 

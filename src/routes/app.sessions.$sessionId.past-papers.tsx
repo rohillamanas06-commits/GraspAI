@@ -28,6 +28,7 @@ function PastPapersPage() {
   const qc = useQueryClient();
 
   const [examType, setExamType] = useState("NEET");
+  const [numQuestions, setNumQuestions] = useState("6");
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const { refresh, user } = useAuth();
@@ -43,7 +44,7 @@ function PastPapersPage() {
     try {
       await api(`/api/sessions/${sessionId}/generate-past-papers`, {
         method: "POST",
-        body: { exam_type: examType }
+        body: { exam_type: examType, num_questions: parseInt(numQuestions, 10) }
       });
       toast.success("Past papers generated successfully!");
       await qc.invalidateQueries({ queryKey: ["past-papers", sessionId] });
@@ -110,6 +111,22 @@ function PastPapersPage() {
                   <SelectItem value="GATE">GATE</SelectItem>
                   <SelectItem value="CAT">CAT</SelectItem>
                   <SelectItem value="UPSC">UPSC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2 w-fit">
+              <label className="text-sm font-medium">Number of Questions (min 6)</label>
+              <Select value={numQuestions} onValueChange={setNumQuestions} disabled={isGenerating || isLoadingPapers}>
+                <SelectTrigger className="w-[140px] bg-background">
+                  <SelectValue placeholder="Select Number" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 15 }, (_, i) => i + 6).map((num) => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
