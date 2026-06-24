@@ -89,7 +89,7 @@ function StudyPage() {
         <TabsList className="shrink-0 flex w-full overflow-x-auto">
           <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm">1. Syllabus</TabsTrigger>
           <TabsTrigger value="plan" disabled={!sessionId} className="flex-1 text-xs sm:text-sm">2. Plan</TabsTrigger>
-          <TabsTrigger value="cards" disabled={!phases.plan_generated} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
+          <TabsTrigger value="cards" disabled={!phases.plan_generated && !phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
           <TabsTrigger value="adapt" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">4. Adapt</TabsTrigger>
           <TabsTrigger value="export" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">5. Export</TabsTrigger>
         </TabsList>

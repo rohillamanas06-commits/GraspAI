@@ -204,11 +204,6 @@ def init_db():
     except Exception:
         conn.rollback()
 
-    try:
-        cur.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS deleted BOOLEAN DEFAULT FALSE;")
-    except Exception:
-        conn.rollback()
-
     # ── Card feedback ─────────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS card_feedback (
@@ -1101,7 +1096,6 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "created_at": s["created_at"],
             "exam_date": s.get("exam_date"),
             "plan_version": s.get("plan_version") or 1,
-            "deleted": s.get("deleted", False),
             "phases": {
                 "syllabus_uploaded": bool(s.get("topics_json")),
                 "plan_generated": bool(s.get("plan_json")),
@@ -1153,7 +1147,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "streak_days": current_user.get("streak_days") or 0,
         },
         "velocity_chart": velocity_chart,
-        "sessions": [s for s in session_summaries if not s.get("deleted")],
+        "sessions": session_summaries,
     }
 
 
@@ -2346,10 +2340,12 @@ def get_session_status(session_id: str, db=Depends(get_db), current_user: dict =
 
 @app.delete("/api/session/{session_id}", tags=["Utility"])
 def delete_session(session_id: str, db=Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Soft-delete a session (owner only) so analytics remain intact."""
+    """Delete a session and all its data (owner only)."""
     get_session_for_user(db, session_id, current_user["id"])
     cur = db.cursor()
-    cur.execute("UPDATE sessions SET deleted = TRUE WHERE id = %s", (session_id,))
+    cur.execute("DELETE FROM card_feedback WHERE session_id = %s", (session_id,))
+    cur.execute("DELETE FROM study_events WHERE session_id = %s", (session_id,))
+    cur.execute("DELETE FROM sessions WHERE id = %s", (session_id,))
     db.commit()
     cur.close()
     return {"message": f"Session '{session_id}' deleted."}
@@ -2774,6 +2770,62 @@ def generate_youtube_flashcards(req: YouTubeRequest, current_user: dict = Depend
     cur.close()
 
     return {"message": "Flashcards generated successfully", "flashcards": flashcards_array}
+
+
+class ExtensionFlashcardRequest(BaseModel):
+    text: str
+    session_id: str
+
+@app.post("/api/extension/generate-flashcards", tags=["Extension"])
+def generate_extension_flashcards(req: ExtensionFlashcardRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    import uuid
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute("SELECT credits FROM users WHERE id = %s", (current_user["id"],))
+    user_row = cur.fetchone()
+    if not user_row or user_row["credits"] < 1:
+        cur.close()
+        raise HTTPException(status_code=402, detail="Insufficient credits")
+
+    row = get_session_for_user(db, req.session_id, current_user["id"])
+
+    prompt = (
+        "Summarize the following text and generate flashcards covering key concepts. "
+        "Return a JSON object with a single key 'flashcards' containing an array where each object has 'front' (question/term) and 'back' (answer/definition).\\n"
+        f"TEXT:\\n{req.text[:15000]}"
+    )
+
+    flashcards_json = call_llm_json(prompt)
+    flashcards_array = flashcards_json.get("flashcards", []) if isinstance(flashcards_json, dict) else flashcards_json
+    
+    if not flashcards_array:
+        cur.close()
+        raise HTTPException(status_code=500, detail="Failed to generate flashcards from text.")
+
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+
+    existing_cards = json.loads(row.get("flashcards_json") or "[]")
+    
+    new_cards = []
+    for c in flashcards_array:
+        new_cards.append({
+            "id": str(uuid.uuid4()),
+            "topic": "Web Snippets",
+            "front": c.get("front", ""),
+            "back": c.get("back", ""),
+            "difficulty": "medium",
+            "next_review_day": 1
+        })
+    
+    updated_cards = existing_cards + new_cards
+    
+    cur.execute("UPDATE sessions SET flashcards_json = %s WHERE id = %s", (json.dumps(updated_cards), req.session_id))
+    db.commit()
+    cur.close()
+
+    log_study_event(db, current_user["id"], req.session_id, "review", len(new_cards))
+
+    return {"message": f"Added {len(new_cards)} flashcards", "count": len(new_cards)}
 
 
 class FlashcardsDownloadRequest(BaseModel):

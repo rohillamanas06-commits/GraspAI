@@ -17,6 +17,7 @@ import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppTutorRouteImport } from './routes/app.tutor'
 import { Route as AppStudyRouteImport } from './routes/app.study'
+import { Route as AppExtensionRouteImport } from './routes/app.extension'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as LegalTermsRouteImport } from './routes/_legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/_legal.privacy'
@@ -64,6 +65,11 @@ const AppTutorRoute = AppTutorRouteImport.update({
 const AppStudyRoute = AppStudyRouteImport.update({
   id: '/study',
   path: '/study',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExtensionRoute = AppExtensionRouteImport.update({
+  id: '/extension',
+  path: '/extension',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof LegalPrivacyRoute
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/extension': typeof AppExtensionRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof LegalPrivacyRoute
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/extension': typeof AppExtensionRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/_legal/privacy': typeof LegalPrivacyRoute
   '/_legal/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/extension': typeof AppExtensionRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
   '/auth/login': typeof AuthLoginRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/dashboard'
+    | '/app/extension'
     | '/app/study'
     | '/app/tutor'
     | '/auth/login'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/dashboard'
+    | '/app/extension'
     | '/app/study'
     | '/app/tutor'
     | '/auth/login'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/_legal/privacy'
     | '/_legal/terms'
     | '/app/dashboard'
+    | '/app/extension'
     | '/app/study'
     | '/app/tutor'
     | '/auth/login'
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       path: '/study'
       fullPath: '/app/study'
       preLoaderRoute: typeof AppStudyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/extension': {
+      id: '/app/extension'
+      path: '/extension'
+      fullPath: '/app/extension'
+      preLoaderRoute: typeof AppExtensionRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/dashboard': {
@@ -380,6 +399,7 @@ const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
+  AppExtensionRoute: typeof AppExtensionRoute
   AppStudyRoute: typeof AppStudyRoute
   AppTutorRoute: typeof AppTutorRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -389,6 +409,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
+  AppExtensionRoute: AppExtensionRoute,
   AppStudyRoute: AppStudyRoute,
   AppTutorRoute: AppTutorRoute,
   AppIndexRoute: AppIndexRoute,

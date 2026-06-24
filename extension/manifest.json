@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "GraspAI Study Assistant",
+  "version": "1.0",
+  "description": "Send highlighted text from any webpage to your GraspAI study sessions.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://*.onrender.com/*",
+    "http://127.0.0.1:8000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GraspAI Study Assistant"
+  }
+}
