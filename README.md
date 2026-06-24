@@ -53,6 +53,10 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - Rate flashcards as **Easy**, **Hard**, or **Skip**
 - **Plan Adaptation** - The AI agent rewrites your future study plan instantly based on your feedback (allocating more time to topics you found hard)
 
+#### 🤖 AI Tutor Chat
+- Interactive conversational assistant to explain complex topics and answer doubts on the fly
+- Persists your chat history and context throughout your study session
+
 #### 📊 Study Analytics Dashboard
 - **Predicted Readiness** - See your confidence levels per topic
 - **Study Velocity** - Track how many flashcards you review each day over the past 7 days
@@ -60,6 +64,7 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 
 #### 📤 Universal Export
 - **Anki Integration** - Export your flashcards directly as an Anki deck (`.apkg`)
+- **Google Calendar Export** - Export your study plan directly to Google Calendar (`.ics`)
 - **JSON/ZIP Export** - Download your raw study plan and flashcards for external use
 
 
