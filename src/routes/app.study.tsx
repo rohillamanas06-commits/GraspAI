@@ -89,9 +89,9 @@ function StudyPage() {
         <TabsList className="shrink-0 flex w-full overflow-x-auto">
           <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm">1. Syllabus</TabsTrigger>
           <TabsTrigger value="plan" disabled={!sessionId} className="flex-1 text-xs sm:text-sm">2. Plan</TabsTrigger>
-          <TabsTrigger value="cards" disabled={!phases.plan_generated && !phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
-          <TabsTrigger value="adapt" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">4. Adapt</TabsTrigger>
-          <TabsTrigger value="export" disabled={!phases.flashcards_generated} className="flex-1 text-xs sm:text-sm">5. Export</TabsTrigger>
+          <TabsTrigger value="cards" disabled={!phases.syllabus_uploaded} className="flex-1 text-xs sm:text-sm">3. Cards</TabsTrigger>
+          <TabsTrigger value="adapt" disabled={!phases.syllabus_uploaded} className="flex-1 text-xs sm:text-sm">4. Adapt</TabsTrigger>
+          <TabsTrigger value="export" disabled={!phases.syllabus_uploaded} className="flex-1 text-xs sm:text-sm">5. Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="flex-1 overflow-auto mt-3 sm:mt-6 pb-4">
@@ -346,7 +346,7 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
           
           <div className="flex gap-2">
             <Button onClick={generate} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">{loading ? "Planning…" : planData?.plan ? "Regenerate" : "Generate plan"}</Button>
-            {planData?.plan && (
+            {planData?.plan ? (
               <>
                 <Button onClick={onDone} variant="secondary" className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">Continue to cards</Button>
                 <Button onClick={() => {
@@ -364,6 +364,8 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
                   <CalendarDays className="h-4 w-4" />
                 </Button>
               </>
+            ) : (
+              <Button onClick={onDone} variant="secondary" className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">Skip to flashcards</Button>
             )}
           </div>
 
