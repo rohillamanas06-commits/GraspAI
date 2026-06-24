@@ -106,7 +106,7 @@
 
 .mocha {
   /* Warm mocha theme */
-  --background: oklch(0.92 0.03 80); 
+  --background: oklch(0.92 0.03 80);
   --foreground: oklch(0.2 0.04 45);
   --card: oklch(0.95 0.02 85);
   --card-foreground: oklch(0.2 0.04 45);
@@ -190,14 +190,31 @@
 }
 
 @keyframes steam {
-  0% { transform: translateY(0) scaleX(1); opacity: 0; }
-  20% { opacity: 0.6; }
-  100% { transform: translateY(-15px) scaleX(1.5); opacity: 0; }
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-15px) scaleX(1.5);
+    opacity: 0;
+  }
 }
 
 @keyframes cup-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* Fullscreen mind map support */

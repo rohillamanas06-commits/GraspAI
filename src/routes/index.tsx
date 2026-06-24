@@ -149,7 +149,7 @@ function Index() {
                 >
                   {/* left / right — big number + title */}
                   <div className="lg:w-2/5 flex flex-col">
-                    <span className="font-serif text-6xl sm:text-8xl font-extralight text-primary/20 leading-none select-none">
+                    <span className="font-serif italic text-6xl sm:text-8xl font-extralight text-primary/20 leading-none select-none">
                       {p.num}
                     </span>
                     <h3 className="mt-3 text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
