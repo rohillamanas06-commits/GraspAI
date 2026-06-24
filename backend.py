@@ -2530,11 +2530,16 @@ async def tutor_chat(
     history: str = Form(...),
     message: str = Form(...),
     files: list[UploadFile] = File(default=[]),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db=Depends(get_db)
 ):
     """
     Process AI Tutor chat with multi-modal support.
     """
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required per message.")
+
     import docx
 
     messages = json.loads(history)
@@ -2609,7 +2614,7 @@ async def tutor_chat(
                 model="gemini-2.5-flash",
                 contents=gemini_messages
             )
-            return {"response": resp.text}
+            response_text = resp.text
         except Exception as e:
             error_msg = str(e)
             if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
@@ -2635,9 +2640,16 @@ async def tutor_chat(
                 messages=groq_messages,
                 temperature=0.7
             )
-            return {"response": resp.choices[0].message.content}
+            response_text = resp.choices[0].message.content
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    cur = db.cursor()
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+
+    return {"response": response_text}
 
 
 if __name__ == "__main__":

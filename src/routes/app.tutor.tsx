@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/sonner";
 import { Paperclip, Send, X, Bot, User, Trash2, Coffee, Mic, Copy, Check, Volume2, VolumeX } from "lucide-react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/app/tutor")({
   head: () => ({ meta: [{ title: "AI Tutor — GraspAI" }] }),
@@ -21,6 +22,7 @@ interface Message {
 }
 
 function TutorPage() {
+  const { user, refresh } = useAuth();
   const [model, setModel] = useState<"gemini" | "groq">("groq");
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [];
@@ -112,6 +114,7 @@ function TutorPage() {
         isForm: true
       });
       setMessages(prev => [...prev, { role: "assistant", content: r.response }]);
+      await refresh();
     } catch (err: any) {
       toast.error(err.message || "Failed to get response");
     } finally {
@@ -253,6 +256,9 @@ function TutorPage() {
                 ))}
               </div>
             )}
+            <div className="px-1 mb-2 text-[10px] sm:text-xs text-muted-foreground">
+              <span>Each message costs 1 credit.</span>
+            </div>
             <form onSubmit={sendMessage} className="flex items-end gap-2">
               <label className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-md border border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition">
                 <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
