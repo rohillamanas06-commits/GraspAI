@@ -46,6 +46,18 @@ const pillars = [
   },
   {
     num: "05",
+    title: "Voice Viva",
+    lead: "Practice out loud.",
+    body: "Simulate real-world oral exams with our AI examiner. Answer questions verbally and receive instant feedback on your tone, accuracy, and confidence.",
+  },
+  {
+    num: "06",
+    title: "Dynamic MCQ Tests",
+    lead: "Test your knowledge.",
+    body: "Generate multiple-choice quizzes directly from your syllabus. Track your progress, identify weak points, and master concepts through targeted testing.",
+  },
+  {
+    num: "07",
     title: "Browser Extension",
     lead: "Capture knowledge anywhere.",
     body: "Highlight text on any website or online textbook and instantly turn it into GraspAI flashcards with a single click. Learning doesn't stop at your syllabus.",
