@@ -148,6 +148,11 @@ def init_db():
     except Exception:
         conn.rollback()
 
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS mock_test_state TEXT;")
+    except Exception:
+        conn.rollback()
+
     # ── Refresh tokens (blacklist-capable) ────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -402,6 +407,37 @@ class AdaptPlanResponse(BaseModel):
     total_days: int
     plan: list[DayPlan]
     changes_summary: str
+
+# ── Mock Test Models ─────────────────────────────────────────────────────────
+
+class MCQQuestion(BaseModel):
+    question: str
+    options: list[str]
+    correct_answer: str
+    explanation: str
+
+class MCQTestResponse(BaseModel):
+    questions: list[MCQQuestion]
+
+class MockTestGenerateRequest(BaseModel):
+    session_id: str
+    num_questions: int = Field(default=10, ge=5, le=20)
+
+class VivaQuestionRequest(BaseModel):
+    session_id: str
+
+class VivaQuestionResponse(BaseModel):
+    question: str
+
+class VivaEvaluateRequest(BaseModel):
+    session_id: str
+    question: str
+    answer: str
+
+class VivaEvaluateResponse(BaseModel):
+    score: int
+    feedback: str
+    next_question: str
 
 # ── Auth Models ──────────────────────────────────────────────────────────────
 
@@ -3086,6 +3122,142 @@ def save_tutor_state(req: TutorStateRequest, current_user: dict = Depends(get_cu
     db.commit()
     cur.close()
     return {"message": "State saved"}
+
+
+# ─────────────────────────────────────────────
+# MOCK TEST
+# ─────────────────────────────────────────────
+
+@app.post("/api/mock-test/mcq/generate", response_model=MCQTestResponse, tags=["Mock Test"])
+def generate_mcq_test(req: MockTestGenerateRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required.")
+        
+    row = get_session_for_user(db, req.session_id, current_user["id"])
+    topics_json = row.get("topics_json")
+    if not topics_json:
+        raise HTTPException(status_code=400, detail="Syllabus not uploaded.")
+        
+    prompt = f"""
+You are an expert examiner. Generate a multiple-choice mock test based on these topics: {topics_json}.
+Create exactly {req.num_questions} questions.
+Each question should have exactly 4 options. Include the correct answer exactly matching one of the options, and a brief explanation.
+
+Return ONLY a JSON object with this exact structure:
+{{
+  "questions": [
+    {{
+      "question": "What is ...?",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": "A",
+      "explanation": "Because..."
+    }}
+  ]
+}}
+"""
+    parsed = call_llm_json(prompt)
+    
+    cur = db.cursor()
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+    
+    return MCQTestResponse(questions=parsed.get("questions", []))
+
+@app.post("/api/mock-test/viva/generate", response_model=VivaQuestionResponse, tags=["Mock Test"])
+def generate_viva_question(req: VivaQuestionRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required.")
+        
+    row = get_session_for_user(db, req.session_id, current_user["id"])
+    topics_json = row.get("topics_json")
+    if not topics_json:
+        raise HTTPException(status_code=400, detail="Syllabus not uploaded.")
+        
+    prompt = f"""
+You are an oral examiner conducting a viva for a student studying these topics: {topics_json}.
+Pick a random important subtopic from the syllabus and generate a single open-ended interview question.
+The question should test deep understanding, not just memorization.
+
+Return ONLY a JSON object with this exact structure:
+{{
+  "question": "Can you explain..."
+}}
+"""
+    parsed = call_llm_json(prompt)
+    
+    cur = db.cursor()
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+    
+    return VivaQuestionResponse(question=parsed.get("question", "Could you explain the main concepts from your syllabus?"))
+
+@app.post("/api/mock-test/viva/evaluate", response_model=VivaEvaluateResponse, tags=["Mock Test"])
+def evaluate_viva_answer(req: VivaEvaluateRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    user_credits = int(current_user.get("credits") if current_user.get("credits") is not None else 5)
+    if user_credits < 1:
+        raise HTTPException(status_code=402, detail="Insufficient credits. 1 credit is required.")
+        
+    row = get_session_for_user(db, req.session_id, current_user["id"])
+    
+    prompt = f"""
+You are an oral examiner. 
+Question asked: {req.question}
+Student's spoken answer: {req.answer}
+
+Evaluate the student's answer out of 10.
+Provide short, constructive feedback (1-2 sentences).
+Then, generate the next logical follow-up question based on their answer or move to a related topic.
+
+Return ONLY a JSON object with this exact structure:
+{{
+  "score": 8,
+  "feedback": "Good explanation, but you missed...",
+  "next_question": "Following up on that, what happens if..."
+}}
+"""
+    parsed = call_llm_json(prompt)
+    
+    cur = db.cursor()
+    cur.execute("UPDATE users SET credits = credits - 1 WHERE id = %s", (current_user["id"],))
+    db.commit()
+    cur.close()
+    
+    return VivaEvaluateResponse(
+        score=parsed.get("score", 0),
+        feedback=parsed.get("feedback", "No feedback provided."),
+        next_question=parsed.get("next_question", "Let's move on to the next topic.")
+    )
+
+class MockTestStateRequest(BaseModel):
+    state: dict
+
+@app.get("/api/mock-test/state")
+def get_mock_test_state(current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT mock_test_state FROM users WHERE id = %s", (current_user["id"],))
+    row = cur.fetchone()
+    cur.close()
+    
+    if not row or not row["mock_test_state"]:
+        return {"state": None}
+    
+    import json
+    return {"state": json.loads(row["mock_test_state"])}
+
+@app.post("/api/mock-test/state")
+def save_mock_test_state(req: MockTestStateRequest, current_user: dict = Depends(get_current_user), db=Depends(get_db)):
+    import json
+    cur = db.cursor()
+    state_str = json.dumps(req.state)
+    cur.execute("UPDATE users SET mock_test_state = %s WHERE id = %s", (state_str, current_user["id"]))
+    db.commit()
+    cur.close()
+    return {"message": "Mock test state saved"}
+
 
 
 if __name__ == "__main__":

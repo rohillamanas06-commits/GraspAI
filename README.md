@@ -49,6 +49,11 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - Expandable solutions allowing you to test yourself before viewing the answers
 - Automatically falls back to secondary LLMs (Groq) for high availability
 
+#### 🎤 Voice-Based & MCQ Mock Tests
+- **Voice-Based Examiner (Viva Mode)**: Experience a realistic oral exam where an AI examiner asks you open-ended questions aloud. Answer using your microphone, and the AI evaluates your spoken response, scores it out of 10, and provides constructive feedback.
+- **Automated MCQ Quizzes**: Instantly generate timed, 10-question multiple-choice quizzes tailored to your uploaded syllabus to rigorously test your exam readiness. Detailed explanations are provided post-quiz.
+- **Credit System Integration**: Generating high-quality mock tests consumes credits to ensure fair usage of advanced AI resources.
+
 #### 🔁 Smart Feedback Loop & Adaptation
 - Interactive flashcard review sessions
 - Rate flashcards as **Easy**, **Hard**, or **Skip**
