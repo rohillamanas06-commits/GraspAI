@@ -34,3 +34,4 @@ bcrypt>=4.0.0                       # password hashing (used directly)
 passlib[bcrypt]>=1.7.4             # password hashing
 email-validator>=2.1.0             # validates EmailStr in Pydantic
 razorpay>=1.4.1                    # Razorpay payments
+slowapi>=0.1.9                     # Rate limiting

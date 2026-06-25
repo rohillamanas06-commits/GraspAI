@@ -26,6 +26,7 @@ import genanki
 import nltk
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool
 from youtube_transcript_api import YouTubeTranscriptApi
 from urllib.parse import urlparse, parse_qs
 
@@ -37,6 +38,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, sta
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Request
 from pydantic import BaseModel, Field, EmailStr
 
 from jose import JWTError, jwt
@@ -51,6 +53,10 @@ for _pkg in ("punkt", "punkt_tab", "stopwords"):
 
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
@@ -97,16 +103,18 @@ CREDIT_PACKAGES = [
     {'id': 'professional', 'name': 'Professional Pack', 'price': 100, 'credits': 50, 'currency': 'INR'},
 ]
 
+_db_pool = psycopg2.pool.ThreadedConnectionPool(1, 10, DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+
 def get_db():
     """
     Yield a psycopg2 connection per request.
     RealDictCursor makes rows behave like dicts (same as sqlite3.Row).
     """
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    conn = _db_pool.getconn()
     try:
         yield conn
     finally:
-        conn.close()
+        _db_pool.putconn(conn)
 
 
 def init_db():
@@ -257,12 +265,17 @@ async def lifespan(app: FastAPI):
 # APP
 # ─────────────────────────────────────────────
 
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="StudyAgent API",
     description="Auth + Dashboard + Syllabus → Study Plan → Flashcards (NLP) → Feedback → Adapt",
     version="3.0.0",
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -877,7 +890,8 @@ def generate_flashcards_nlp(
 # ─────────────────────────────────────────────
 
 @app.post("/api/auth/register", response_model=TokenResponse, tags=["Auth"])
-def register(req: RegisterRequest, db=Depends(get_db)):
+@limiter.limit("5/minute")
+def register(req: RegisterRequest, request: Request, db=Depends(get_db)):
     """
     Create a new account. Returns access + refresh tokens immediately.
     Password must be at least 8 characters.
@@ -909,7 +923,8 @@ def register(req: RegisterRequest, db=Depends(get_db)):
 
 
 @app.post("/api/auth/login", response_model=TokenResponse, tags=["Auth"])
-def login(req: LoginRequest, db=Depends(get_db)):
+@limiter.limit("5/minute")
+def login(req: LoginRequest, request: Request, db=Depends(get_db)):
     """Login with email + password. Returns access + refresh tokens."""
     cur = db.cursor()
     cur.execute("SELECT * FROM users WHERE email = %s", (req.email,))
