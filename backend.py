@@ -1044,7 +1044,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
     seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     cur.execute(
         "SELECT created_at, cards_count FROM study_events "
-        "WHERE user_id = %s AND event_type = 'feedback' AND created_at >= %s ORDER BY created_at",
+        "WHERE user_id = %s AND event_type IN ('feedback', 'review') AND created_at >= %s ORDER BY created_at",
         (user_id, seven_days_ago)
     )
     events = [dict(r) for r in cur.fetchall()]
@@ -1177,6 +1177,62 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
         "radar_chart": radar_chart,
         "sessions": session_summaries,
     }
+
+
+@app.get("/api/leaderboard", tags=["Leaderboard"])
+def get_leaderboard(db=Depends(get_db)):
+    """
+    Public leaderboard ranking users by their Grasp Score.
+    """
+    cur = db.cursor()
+    
+    # Get all users
+    cur.execute("SELECT id, full_name, streak_days FROM users")
+    users = [dict(r) for r in cur.fetchall()]
+    
+    # Get total sessions per user
+    cur.execute("SELECT user_id, COUNT(*) as sessions_count FROM sessions GROUP BY user_id")
+    sessions_counts = {r["user_id"]: r["sessions_count"] for r in cur.fetchall()}
+    
+    # Get cards reviewed per user (including all review types)
+    cur.execute("SELECT user_id, SUM(cards_count) as cards_reviewed FROM study_events WHERE event_type IN ('feedback', 'review') GROUP BY user_id")
+    cards_counts = {r["user_id"]: r["cards_reviewed"] for r in cur.fetchall()}
+    
+    leaderboard = []
+    for u in users:
+        uid = str(u["id"])
+        streak = u["streak_days"] or 0
+        sessions = sessions_counts.get(uid, 0)
+        cards = int(cards_counts.get(uid, 0) or 0)
+        
+        # Calculate Grasp Score
+        score = (streak * 50) + (sessions * 10) + cards
+        
+        # Only include users who have actively used GraspAI
+        if score > 0:
+            # Mask name
+            raw_name = u["full_name"]
+            name = raw_name.split(" ")[0] if raw_name and raw_name.strip() else "Anonymous Scholar"
+            
+            leaderboard.append({
+                "name": name,
+                "score": score,
+                "streak": streak,
+                "sessions": sessions,
+                "cards_reviewed": cards
+            })
+    
+    cur.close()
+    
+    # Sort by score descending
+    leaderboard.sort(key=lambda x: x["score"], reverse=True)
+    
+    # Assign ranks
+    for i, user in enumerate(leaderboard):
+        user["rank"] = i + 1
+        
+    return {"leaderboard": leaderboard}
+
 
 
 @app.get("/api/dashboard/session/{session_id}", tags=["Dashboard"])
