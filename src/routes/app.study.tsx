@@ -210,14 +210,22 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
           <Input className="h-8 sm:h-10 text-xs sm:text-sm" placeholder="e.g. Spring midterm" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col min-h-0 min-h-[120px]">
-          <Label className="text-xs sm:text-sm">PDF file(s) - Max 10</Label>
-          <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
-            <Upload className="h-4 w-4" />
-            <span className="text-center">{files.length > 0 ? `${files.length} file(s) selected` : "Click to choose PDF(s) (Ctrl+Click to select many)"}</span>
-            <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => {
-              const selected = Array.from(e.target.files ?? []);
-              if (files.length + selected.length > 10) return toast.error("Maximum 10 PDFs allowed");
-              setFiles(prev => [...prev, ...selected]);
+            <Label className="text-xs sm:text-sm">PDF file(s) - Max 10 (Total 100MB)</Label>
+            <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
+              <Upload className="h-4 w-4" />
+              <span className="text-center">{files.length > 0 ? `${files.length} file(s) selected` : "Click to choose PDF(s) (Ctrl+Click to select many)"}</span>
+              <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => {
+                const selected = Array.from(e.target.files ?? []);
+                if (files.length + selected.length > 10) return toast.error("Maximum 10 PDFs allowed");
+                
+                const MAX_TOTAL_MB = 100;
+                const totalSize = [...files, ...selected].reduce((acc, file) => acc + file.size, 0);
+                if (totalSize > MAX_TOTAL_MB * 1024 * 1024) {
+                  toast.error(`Total file size exceeds ${MAX_TOTAL_MB}MB.`);
+                  return;
+                }
+
+                setFiles(prev => [...prev, ...selected]);
               e.target.value = "";
             }} />
           </label>

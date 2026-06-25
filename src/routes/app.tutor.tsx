@@ -63,7 +63,14 @@ function TutorPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? []);
-    if (files.length + selected.length > 5) return toast.error("Max 5 files allowed");
+    if (files.length + selected.length > 5) return toast.error("Max 5 files allowed (Total 100MB)");
+
+    const MAX_TOTAL_MB = 100;
+    const totalSize = [...files, ...selected].reduce((acc, file) => acc + file.size, 0);
+    if (totalSize > MAX_TOTAL_MB * 1024 * 1024) {
+      toast.error(`Total file size exceeds the ${MAX_TOTAL_MB}MB limit.`);
+      return;
+    }
 
     if (selected.some(f => f.type.startsWith("image/"))) {
       toast.info("Image detected. Switching to Gemini.");

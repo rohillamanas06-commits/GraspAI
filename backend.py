@@ -1380,11 +1380,15 @@ async def upload_syllabus(
         raise HTTPException(status_code=400, detail="Maximum 10 PDFs allowed.")
 
     raw_text = ""
+    total_size = 0
     for file in files:
         if not file.filename.endswith(".pdf"):
             raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
         content = await file.read()
+        total_size += len(content)
+        if total_size > 100 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Total file size exceeds the 100MB limit.")
         try:
             with pdfplumber.open(io.BytesIO(content)) as pdf:
                 for page in pdf.pages:
@@ -2657,10 +2661,14 @@ async def tutor_chat(
     gemini_parts = []
     has_images = False
 
+    total_size = 0
     for file in files:
         if not file.filename:
             continue
         content = await file.read()
+        total_size += len(content)
+        if total_size > 100 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Total file size exceeds the 100MB limit.")
         filename = file.filename.lower()
         if filename.endswith(".pdf"):
             text = ""
