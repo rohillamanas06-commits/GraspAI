@@ -80,6 +80,11 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 - **Google Calendar Export** - Export your study plan directly to Google Calendar (`.ics`)
 - **JSON/ZIP Export** - Download your raw study plan and flashcards for external use
 
+#### 🧩 Chrome Extension
+- **Web Clipper** - Highlight any text on any webpage and instantly send it to your active GraspAI study sessions
+- **Seamless Integration** - Your highlighted notes and references are immediately available in your study dashboard
+- **Distraction-Free** - Capture knowledge without leaving the page you are reading
+
 
 ## 🛠️ Tech Stack
 
@@ -115,6 +120,7 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
  │   ├── App.tsx                 # Main application component with providers
  │   ├── main.tsx                # Application entry point
  │   └── index.css               # Global styles and Tailwind directives
+ ├── extension/                  # Chrome Extension Source
  ├── components.json             # Shadcn UI configuration
  ├── postcss.config.js           # PostCSS configuration
  ├── tailwind.config.ts          # Tailwind CSS configuration
