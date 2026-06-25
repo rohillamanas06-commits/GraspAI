@@ -19,85 +19,78 @@ function ExtensionPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="flex flex-col h-full border-primary/20 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              1. Download the Extension
-            </CardTitle>
-            <CardDescription>
-              Get the latest version of the GraspAI Chrome Extension as a ZIP file.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-4 bg-muted/30 rounded-md mx-6 mb-6">
-            <Coffee className="h-16 w-16 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">
-              This extension is currently in beta. You can install it manually by downloading the source files.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full text-base py-6" asChild>
+      <Card className="w-full shadow-sm border-primary/20">
+        <CardHeader className="pb-5">
+          <CardTitle className="text-2xl">Get the Extension</CardTitle>
+          <CardDescription className="text-base mt-2">
+            Download the latest version of the GraspAI Chrome Extension and follow the steps below to install it.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-8">
+          {/* Step 1: Download */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-6 gap-4">
+            <div>
+              <h3 className="text-xl font-semibold mb-1">1. Download</h3>
+              <p className="text-sm text-muted-foreground">
+                The extension is currently in beta. Download the source files to install manually.
+              </p>
+            </div>
+            <Button className="font-medium shadow-sm shrink-0 px-6 py-5 text-base" asChild>
               <a href="/GraspAI.zip" download="GraspAI.zip">
                 Download Extension
               </a>
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
 
-        <Card className="flex flex-col h-full shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              2. Installation Guide
-            </CardTitle>
-            <CardDescription>
-              Follow these simple steps to load the extension into Google Chrome.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 space-y-6">
-            <div className="space-y-4">
+          {/* Step 2: Installation */}
+          <div>
+            <h3 className="text-xl font-semibold mb-6">2. Installation Guide</h3>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">1</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">1</div>
                 <div>
-                  <h4 className="font-medium">Extract the ZIP file</h4>
-                  <p className="text-sm text-muted-foreground">Unzip the downloaded `GraspAI.zip` file to a folder on your computer.</p>
+                  <h4 className="font-medium text-base">Extract the ZIP file</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Unzip the downloaded `GraspAI.zip` file.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">2</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">2</div>
                 <div>
-                  <h4 className="font-medium flex items-center gap-2">Open Chrome Extensions</h4>
-                  <p className="text-sm text-muted-foreground">Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">chrome://extensions/</code> into your Chrome URL bar and press Enter.</p>
+                  <h4 className="font-medium text-base">Open Chrome Extensions</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono border">chrome://extensions/</code> and press Enter.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">3</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">3</div>
                 <div>
-                  <h4 className="font-medium">Enable Developer Mode</h4>
-                  <p className="text-sm text-muted-foreground">Toggle the <strong>Developer mode</strong> switch in the top right corner of the page.</p>
+                  <h4 className="font-medium text-base">Enable Developer Mode</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Toggle the <strong>Developer mode</strong> switch.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">4</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">4</div>
                 <div>
-                  <h4 className="font-medium flex items-center gap-2">Load Unpacked</h4>
-                  <p className="text-sm text-muted-foreground">Click the <strong>Load unpacked</strong> button and select the folder you extracted in Step 1.</p>
+                  <h4 className="font-medium text-base">Load Unpacked</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Click <strong>Load unpacked</strong> and select the folder.</p>
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">5</div>
+              <div className="flex gap-4 sm:col-span-2 lg:col-span-1">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">5</div>
                 <div>
-                  <h4 className="font-medium flex items-center gap-2">You're done!</h4>
-                  <p className="text-sm text-muted-foreground">Pin the extension to your toolbar, log in, and start highlighting text to generate flashcards!</p>
+                  <h4 className="font-medium text-base">You're done!</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Pin it and start highlighting text!</p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

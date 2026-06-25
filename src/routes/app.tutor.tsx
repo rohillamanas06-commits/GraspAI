@@ -150,7 +150,7 @@ function TutorPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-5rem)] space-y-4 p-4 sm:p-6 lg:p-8 w-full">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-5rem)] space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10 w-full">
       <div className="shrink-0 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">AI Tutor</h1>
@@ -254,9 +254,9 @@ function TutorPage() {
           </div>
 
           {/* Input Area */}
-          <div className="shrink-0 border-t border-border bg-card p-3 sm:p-4">
+          <div className="shrink-0 border-t border-border mx-4 sm:mx-6 mb-4 sm:mb-6 pt-2 flex flex-col gap-2">
             {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2">
                 {files.map((f, i) => (
                   <div key={i} className="flex items-center gap-1 bg-muted/50 border border-border rounded-md px-2 py-1.5 text-[10px] sm:text-xs">
                     <span className="truncate max-w-[120px] text-muted-foreground">{f.name}</span>
@@ -267,10 +267,7 @@ function TutorPage() {
                 ))}
               </div>
             )}
-            <div className="px-1 mb-2 text-[10px] sm:text-xs text-muted-foreground">
-              <span>Each message costs 1 credit.</span>
-            </div>
-            <form onSubmit={sendMessage} className="flex items-end gap-2">
+            <form onSubmit={sendMessage} className="flex items-center gap-2">
               {messages.length > 0 && (
                 <Button type="button" variant="outline" onClick={clearChat} title="Clear chat" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-border bg-muted/30 transition">
                   <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -297,6 +294,9 @@ function TutorPage() {
                 <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </form>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">
+              Each message costs 1 credit.
+            </div>
           </div>
 
         </CardContent>

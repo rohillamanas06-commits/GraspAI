@@ -75,10 +75,10 @@ function Index() {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
+    <div className="mocha flex min-h-screen w-full flex-col bg-background text-foreground">
       {/* ── Hero video — completely clean, no overlay text ──────── */}
       <main className="relative min-h-screen w-full overflow-hidden shrink-0">
-        <nav className="absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-black px-4 py-3 sm:px-10 sm:py-4">
+        <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between bg-black/90 backdrop-blur-md px-4 py-3 sm:px-10 sm:py-4 border-b border-white/10">
           <span className="font-serif text-sm tracking-[0.18em] text-white sm:text-lg">GRASP AI</span>
           {user ? (
             <Link
