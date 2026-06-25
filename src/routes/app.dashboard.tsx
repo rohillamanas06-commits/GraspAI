@@ -8,15 +8,6 @@ import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee, Coins } from "lucid
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 
-const mockRadarData = [
-  { subject: 'Biology', score: 90, fullMark: 100 },
-  { subject: 'Math', score: 45, fullMark: 100 },
-  { subject: 'History', score: 75, fullMark: 100 },
-  { subject: 'Physics', score: 60, fullMark: 100 },
-  { subject: 'Chemistry', score: 85, fullMark: 100 },
-  { subject: 'Literature', score: 50, fullMark: 100 },
-];
-
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — GraspAI" }] }),
   component: DashboardPage,
@@ -26,6 +17,7 @@ interface DashboardData {
   user: { full_name: string | null; email: string; streak_days: number; member_since: string; credits: number };
   aggregate: { total_sessions: number; total_cards: number; total_topics_mastered: number; cards_this_week: number; streak_days: number };
   velocity_chart: { date: string; cards: number }[];
+  radar_chart: { subject: string; score: number; fullMark: number }[];
   sessions: Array<{
     session_id: string;
     session_name: string;
@@ -78,8 +70,8 @@ function DashboardPage() {
         <Stat icon={<CalendarDays className="h-4 w-4" />} label="Topics mastered" value={data.aggregate.total_topics_mastered} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle className="text-base font-medium">Study velocity</CardTitle>
           </CardHeader>
@@ -101,7 +93,7 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base font-medium">Topic Mastery</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
@@ -109,14 +101,21 @@ function DashboardPage() {
             </p>
           </CardHeader>
           <CardContent className="h-48 sm:h-56 mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={mockRadarData}>
-                <PolarGrid stroke="var(--color-border)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: "var(--color-foreground)", fontSize: 11 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--color-muted-foreground)", fontSize: 9 }} />
-                <Radar name="Mastery" dataKey="score" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.5} />
-              </RadarChart>
-            </ResponsiveContainer>
+            {data.radar_chart && data.radar_chart.length >= 3 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="55%" data={data.radar_chart}>
+                  <PolarGrid stroke="var(--color-border)" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: "var(--color-foreground)", fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Mastery" dataKey="score" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.5} />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
+                <p className="text-sm">Not enough data.</p>
+                <p className="text-xs">Review cards from at least 3 topics to unlock!</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

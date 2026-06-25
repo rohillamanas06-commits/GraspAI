@@ -1123,6 +1123,25 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "predicted_readiness": predicted_readiness,
         })
 
+    # ── Global Radar Chart (Topic Mastery) ───────────────────────────────────
+    global_topic_confidence = {}
+    for fb in all_feedback:
+        topic = fb["topic"]
+        if topic not in global_topic_confidence:
+            global_topic_confidence[topic] = {"easy": 0, "total": 0}
+        
+        global_topic_confidence[topic]["total"] += 1
+        if fb["feedback"] == "too_easy":
+            global_topic_confidence[topic]["easy"] += 1
+
+    radar_chart = []
+    # Show top 6 most studied topics
+    sorted_topics = sorted(global_topic_confidence.items(), key=lambda item: item[1]["total"], reverse=True)[:6]
+    for topic, stats in sorted_topics:
+        if stats["total"] > 0:
+            score = round((stats["easy"] / stats["total"]) * 100)
+            radar_chart.append({"subject": topic, "score": score, "fullMark": 100})
+
     # ── Velocity: cards reviewed per day (last 7 days) ───────────────────────
     velocity_by_day: dict = {}
     for ev in events:
@@ -1155,6 +1174,7 @@ def get_dashboard(current_user: dict = Depends(get_current_user), db=Depends(get
             "streak_days": current_user.get("streak_days") or 0,
         },
         "velocity_chart": velocity_chart,
+        "radar_chart": radar_chart,
         "sessions": session_summaries,
     }
 
