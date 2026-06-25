@@ -169,13 +169,27 @@
     const btn = shadowRoot.getElementById('generate-btn');
     const msg = shadowRoot.getElementById('msg');
 
-    try {
-      const data = await chrome.storage.local.get("graspai_sessions");
-      const sessions = data.graspai_sessions || [];
-      
+    chrome.runtime.sendMessage({ type: "get_sessions" }, (response) => {
+      if (chrome.runtime.lastError) {
+        select.innerHTML = '<option value="">Extension updating. Please refresh page.</option>';
+        return;
+      }
+
+      if (response && response.error) {
+        select.innerHTML = '<option value="">Error loading sessions.</option>';
+        return;
+      }
+
+      if (response && response.loggedIn === false) {
+        select.innerHTML = '<option value="">Please log in to GraspAI extension.</option>';
+        return;
+      }
+
+      const sessions = response?.sessions || [];
       select.innerHTML = "";
+      
       if (sessions.length === 0) {
-        select.innerHTML = '<option value="">No sessions found. Log in to extension.</option>';
+        select.innerHTML = '<option value="">No sessions found. Create one first.</option>';
       } else {
         sessions.forEach(s => {
           const opt = document.createElement("option");
@@ -185,9 +199,7 @@
         });
         btn.disabled = false;
       }
-    } catch (err) {
-      select.innerHTML = '<option value="">Error loading sessions</option>';
-    }
+    });
 
     btn.addEventListener('click', async () => {
       const sessionId = select.value;

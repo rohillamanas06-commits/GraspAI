@@ -76,4 +76,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })();
     return true; // Keep the message channel open for async response
   }
+  
+  if (request.type === "get_sessions") {
+    (async () => {
+      try {
+        const data = await chrome.storage.local.get(["graspai_token", "graspai_sessions"]);
+        if (!data.graspai_token) {
+          sendResponse({ loggedIn: false });
+        } else {
+          sendResponse({ loggedIn: true, sessions: data.graspai_sessions || [] });
+        }
+      } catch (err) {
+        sendResponse({ error: err.message });
+      }
+    })();
+    return true;
+  }
 });
