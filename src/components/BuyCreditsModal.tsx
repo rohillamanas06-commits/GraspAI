@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Coins, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -141,7 +141,6 @@ export function BuyCreditsModal({ isOpen, onClose, onSuccess, currentCredits }: 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-yellow-500" />
             Buy Credits
           </DialogTitle>
           <DialogDescription>
