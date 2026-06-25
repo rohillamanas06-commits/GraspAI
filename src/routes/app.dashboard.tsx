@@ -52,7 +52,7 @@ function DashboardPage() {
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Member since {data.user.member_since}</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsBuyModalOpen(true)}
           className="flex w-fit items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-500/30 hover:scale-105 transition-all cursor-pointer"
         >
@@ -145,8 +145,8 @@ function DashboardPage() {
           </div>
         )}
       </div>
-      
-      <BuyCreditsModal 
+
+      <BuyCreditsModal
         isOpen={isBuyModalOpen}
         onClose={() => setIsBuyModalOpen(false)}
         onSuccess={() => {
