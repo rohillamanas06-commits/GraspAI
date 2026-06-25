@@ -6,6 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee, Coins } from "lucide-react";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+
+const mockRadarData = [
+  { subject: 'Biology', score: 90, fullMark: 100 },
+  { subject: 'Math', score: 45, fullMark: 100 },
+  { subject: 'History', score: 75, fullMark: 100 },
+  { subject: 'Physics', score: 60, fullMark: 100 },
+  { subject: 'Chemistry', score: 85, fullMark: 100 },
+  { subject: 'Literature', score: 50, fullMark: 100 },
+];
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — GraspAI" }] }),
@@ -68,27 +78,48 @@ function DashboardPage() {
         <Stat icon={<CalendarDays className="h-4 w-4" />} label="Topics mastered" value={data.aggregate.total_topics_mastered} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-medium">Study velocity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-1.5 h-24 sm:gap-3 sm:h-32 mt-2">
-            {data.velocity_chart.map((d) => (
-              <div key={d.date} className="flex flex-1 flex-col items-center justify-end h-full gap-2">
-                <div className="w-full flex-1 flex items-end">
-                  <div
-                    className="w-full rounded-t-md bg-primary/80 transition-all"
-                    style={{ height: `${(d.cards / maxV) * 100}%`, minHeight: 4 }}
-                    title={`${d.cards} cards`}
-                  />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base font-medium">Study velocity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-1.5 h-48 sm:gap-3 sm:h-56 mt-2">
+              {data.velocity_chart.map((d) => (
+                <div key={d.date} className="flex flex-1 flex-col items-center justify-end h-full gap-2">
+                  <div className="w-full flex-1 flex items-end">
+                    <div
+                      className="w-full rounded-t-md bg-primary/80 transition-all"
+                      style={{ height: `${(d.cards / maxV) * 100}%`, minHeight: 4 }}
+                      title={`${d.cards} cards`}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{d.date.slice(5)}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">{d.date.slice(5)}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-medium">Topic Mastery</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              The closer to the edge, the stronger your mastery.
+            </p>
+          </CardHeader>
+          <CardContent className="h-48 sm:h-56 mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={mockRadarData}>
+                <PolarGrid stroke="var(--color-border)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: "var(--color-foreground)", fontSize: 11 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--color-muted-foreground)", fontSize: 9 }} />
+                <Radar name="Mastery" dataKey="score" stroke="var(--color-primary)" fill="var(--color-primary)" fillOpacity={0.5} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       <div>
         <h2 className="mb-4 text-lg font-medium tracking-tight">Your sessions</h2>
