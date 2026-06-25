@@ -38,3 +38,42 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   }
 });
+
+// Listen for messages from content.js (hover UI)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "generate_flashcards") {
+    (async () => {
+      try {
+        const { graspai_token } = await chrome.storage.local.get("graspai_token");
+        if (!graspai_token) {
+          throw new Error("You must log in to the GraspAI extension first.");
+        }
+
+        const API_BASE = "https://graspai.onrender.com";
+        const res = await fetch(`${API_BASE}/api/extension/generate-flashcards`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${graspai_token}`
+          },
+          body: JSON.stringify({ text: request.text, session_id: request.session_id })
+        });
+
+        const responseText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (err) {
+          throw new Error(`Backend returned non-JSON (${res.status})`);
+        }
+
+        if (!res.ok) throw new Error(data.detail || `Failed to generate flashcards (${res.status})`);
+
+        sendResponse({ success: true, count: data.count });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true; // Keep the message channel open for async response
+  }
+});

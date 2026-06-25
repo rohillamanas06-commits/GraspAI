@@ -146,7 +146,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!data.sessions || data.sessions.length === 0) {
         sessionSelect.innerHTML = `<option value="">No sessions found. Create one first.</option>`;
         generateBtn.disabled = true;
+        await chrome.storage.local.set({ graspai_sessions: [] });
       } else {
+        await chrome.storage.local.set({ graspai_sessions: data.sessions });
         data.sessions.forEach(s => {
           const opt = document.createElement("option");
           opt.value = s.session_id;
