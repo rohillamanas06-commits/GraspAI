@@ -9,9 +9,10 @@ GraspAI is an advanced AI-powered study assistant platform that turns your sylla
 ## 📸 Screenshots
 
 ![GraspAI Screenshot 1](public/Screenshot%202026-06-23%20112523.png)
-
-
-
+![GraspAI Screenshot 2](public/Screenshot%202026-06-26%20145223.png)
+![GraspAI Screenshot 3](public/Screenshot%202026-06-26%20145259.png)
+![GraspAI Screenshot 4](public/Screenshot%202026-06-26%20145346.png)
+![GraspAI Screenshot 5](public/Screenshot%202026-06-26%20145357.png)
 
 ### Why GraspAI?
 
