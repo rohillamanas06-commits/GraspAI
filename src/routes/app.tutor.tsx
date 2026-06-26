@@ -135,11 +135,11 @@ function TutorPage() {
         body: fd,
         isForm: true
       });
-      
+
       if (r.fallback) {
         toast.info("Gemini not available, switched to Groq");
       }
-      
+
       setMessages(prev => [...prev, { role: "assistant", content: r.response }]);
     } catch (err: any) {
       toast.error(err.message || "Failed to get response");
@@ -170,152 +170,152 @@ function TutorPage() {
       {isLoaded ? (
         <Tabs defaultValue="chat" className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-3 mb-4 shrink-0">
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
-          <TabsTrigger value="youtube">YouTube</TabsTrigger>
-        </TabsList>
-        <TabsContent value="chat" className="flex-1 m-0 flex flex-col min-h-0">
-          <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card mt-0">
-        <CardContent className="flex flex-col flex-1 p-0 overflow-hidden relative">
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
+            <TabsTrigger value="youtube">YouTube</TabsTrigger>
+          </TabsList>
+          <TabsContent value="chat" className="flex-1 m-0 flex flex-col min-h-0">
+            <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card mt-0">
+              <CardContent className="flex flex-col flex-1 p-0 overflow-hidden relative">
 
-          {/* Chat Feed */}
-          <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 flex flex-col">
-            {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-60 min-h-0">
-                <Coffee className="h-12 w-12 mb-4" />
-                <p className="text-sm font-medium">Your Study Barista is ready!</p>
-                <p className="text-xs mt-1">Ask me anything, or upload a document/image for a fresh brew of knowledge.</p>
-              </div>
-            ) : (
-              messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  {msg.role === "assistant" && (
-                    <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
-                      <Coffee className="h-4 w-4" />
+                {/* Chat Feed */}
+                <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-4 flex flex-col">
+                  {messages.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-60 min-h-0">
+                      <Coffee className="h-12 w-12 mb-4" />
+                      <p className="text-sm font-medium">Your Study Barista is ready!</p>
+                      <p className="text-xs mt-1">Ask me anything, or upload a document/image for a fresh brew of knowledge.</p>
                     </div>
-                  )}
-                  <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1`}>
-                    <div className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-sm"
-                      : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
-                      }`}>
-                      {msg.files && msg.files.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {msg.files.map((f, idx) => (
-                            <div key={idx} className="flex items-center gap-1 bg-primary-foreground/20 rounded-md px-2 py-1 text-[10px]">
-                              <Paperclip className="h-3 w-3" />
-                              <span className="truncate max-w-[150px]">{f}</span>
+                  ) : (
+                    messages.map((msg, i) => (
+                      <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        {msg.role === "assistant" && (
+                          <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
+                            <Coffee className="h-4 w-4" />
+                          </div>
+                        )}
+                        <div className={`max-w-[85%] sm:max-w-[75%] flex flex-col gap-1`}>
+                          <div className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${msg.role === "user"
+                            ? "bg-primary text-primary-foreground rounded-tr-sm"
+                            : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
+                            }`}>
+                            {msg.files && msg.files.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {msg.files.map((f, idx) => (
+                                  <div key={idx} className="flex items-center gap-1 bg-primary-foreground/20 rounded-md px-2 py-1 text-[10px]">
+                                    <Paperclip className="h-3 w-3" />
+                                    <span className="truncate max-w-[150px]">{f}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {msg.content}
+                          </div>
+                          {msg.role === "assistant" && (
+                            <div className="flex items-center gap-2 pl-2 text-muted-foreground">
+                              <button onClick={() => {
+                                navigator.clipboard.writeText(msg.content);
+                                setCopiedIdx(i);
+                                setTimeout(() => setCopiedIdx(null), 2000);
+                              }} className="hover:text-foreground p-1 transition" title="Copy text">
+                                {copiedIdx === i ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                              </button>
+                              <button onClick={() => {
+                                if (playingIdx === i) {
+                                  window.speechSynthesis.cancel();
+                                  setPlayingIdx(null);
+                                } else {
+                                  window.speechSynthesis.cancel();
+                                  const ut = new SpeechSynthesisUtterance(msg.content);
+                                  ut.onend = () => setPlayingIdx(null);
+                                  window.speechSynthesis.speak(ut);
+                                  setPlayingIdx(i);
+                                }
+                              }} className="hover:text-foreground p-1 transition" title="Read Aloud">
+                                {playingIdx === i ? <VolumeX className="h-3.5 w-3.5 text-primary" /> : <Volume2 className="h-3.5 w-3.5" />}
+                              </button>
                             </div>
-                          ))}
+                          )}
                         </div>
-                      )}
-                      {msg.content}
-                    </div>
-                    {msg.role === "assistant" && (
-                      <div className="flex items-center gap-2 pl-2 text-muted-foreground">
-                        <button onClick={() => {
-                          navigator.clipboard.writeText(msg.content);
-                          setCopiedIdx(i);
-                          setTimeout(() => setCopiedIdx(null), 2000);
-                        }} className="hover:text-foreground p-1 transition" title="Copy text">
-                          {copiedIdx === i ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        </button>
-                        <button onClick={() => {
-                          if (playingIdx === i) {
-                            window.speechSynthesis.cancel();
-                            setPlayingIdx(null);
-                          } else {
-                            window.speechSynthesis.cancel();
-                            const ut = new SpeechSynthesisUtterance(msg.content);
-                            ut.onend = () => setPlayingIdx(null);
-                            window.speechSynthesis.speak(ut);
-                            setPlayingIdx(i);
-                          }
-                        }} className="hover:text-foreground p-1 transition" title="Read Aloud">
-                          {playingIdx === i ? <VolumeX className="h-3.5 w-3.5 text-primary" /> : <Volume2 className="h-3.5 w-3.5" />}
-                        </button>
+                        {msg.role === "user" && (
+                          <div className="h-8 w-8 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center mt-1">
+                            <User className="h-4 w-4" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  {msg.role === "user" && (
-                    <div className="h-8 w-8 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center mt-1">
-                      <User className="h-4 w-4" />
+                    ))
+                  )}
+                  {loading && (
+                    <div className="flex gap-3 justify-start">
+                      <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
+                        <Coffee className="h-4 w-4 animate-pulse" />
+                      </div>
+                      <div className="bg-muted/50 text-muted-foreground border border-border rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-1">
+                        <span className="animate-bounce">●</span>
+                        <span className="animate-bounce delay-100">●</span>
+                        <span className="animate-bounce delay-200">●</span>
+                      </div>
                     </div>
                   )}
+                  <div ref={endRef} />
                 </div>
-              ))
-            )}
-            {loading && (
-              <div className="flex gap-3 justify-start">
-                <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center mt-1">
-                  <Coffee className="h-4 w-4 animate-pulse" />
-                </div>
-                <div className="bg-muted/50 text-muted-foreground border border-border rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-1">
-                  <span className="animate-bounce">●</span>
-                  <span className="animate-bounce delay-100">●</span>
-                  <span className="animate-bounce delay-200">●</span>
-                </div>
-              </div>
-            )}
-            <div ref={endRef} />
-          </div>
 
-          {/* Input Area */}
-          <div className="shrink-0 border-t border-border mx-4 sm:mx-6 mb-4 sm:mb-6 pt-2 flex flex-col gap-2">
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {files.map((f, i) => (
-                  <div key={i} className="flex items-center gap-1 bg-muted/50 border border-border rounded-md px-2 py-1.5 text-[10px] sm:text-xs">
-                    <span className="truncate max-w-[120px] text-muted-foreground">{f.name}</span>
-                    <button onClick={() => removeFile(i)} type="button" className="text-muted-foreground hover:text-foreground">
-                      <X className="h-3 w-3" />
-                    </button>
+                {/* Input Area */}
+                <div className="shrink-0 border-t border-border mx-4 sm:mx-6 mb-4 sm:mb-6 pt-2 flex flex-col gap-2">
+                  {files.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {files.map((f, i) => (
+                        <div key={i} className="flex items-center gap-1 bg-muted/50 border border-border rounded-md px-2 py-1.5 text-[10px] sm:text-xs">
+                          <span className="truncate max-w-[120px] text-muted-foreground">{f.name}</span>
+                          <button onClick={() => removeFile(i)} type="button" className="text-muted-foreground hover:text-foreground">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <form onSubmit={sendMessage} className="flex items-center gap-2">
+                    {messages.length > 0 && (
+                      <Button type="button" variant="outline" onClick={clearChat} title="Clear chat" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-border bg-muted/30 transition">
+                        <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </Button>
+                    )}
+                    <label className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-md border border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition">
+                      <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <input type="file" multiple accept=".pdf,.txt,.doc,.docx,image/png,image/jpeg,image/jpg" className="hidden" onChange={handleFileChange} />
+                    </label>
+
+                    <Input
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      placeholder="Ask your tutor something..."
+                      className="flex-1 h-10 sm:h-12 bg-muted/20 border-border"
+                      disabled={loading}
+                    />
+
+                    <Button type="button" variant="outline" onClick={startListening} disabled={loading || isListening} className={`h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-foreground border-border bg-muted/30 ${isListening ? "animate-pulse text-red-500" : ""}`}>
+                      <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+
+                    <Button type="submit" disabled={loading || (!input.trim() && files.length === 0)} className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0">
+                      <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+                  </form>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
+                    Each message costs 1 credit.
                   </div>
-                ))}
-              </div>
-            )}
-            <form onSubmit={sendMessage} className="flex items-center gap-2">
-              {messages.length > 0 && (
-                <Button type="button" variant="outline" onClick={clearChat} title="Clear chat" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-border bg-muted/30 transition">
-                  <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              )}
-              <label className="shrink-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-md border border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition">
-                <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
-                <input type="file" multiple accept=".pdf,.txt,.doc,.docx,image/png,image/jpeg,image/jpg" className="hidden" onChange={handleFileChange} />
-              </label>
+                </div>
 
-              <Input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Ask your tutor something..."
-                className="flex-1 h-10 sm:h-12 bg-muted/20 border-border"
-                disabled={loading}
-              />
-
-              <Button type="button" variant="outline" onClick={startListening} disabled={loading || isListening} className={`h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0 text-muted-foreground hover:text-foreground border-border bg-muted/30 ${isListening ? "animate-pulse text-red-500" : ""}`}>
-                <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-
-              <Button type="submit" disabled={loading || (!input.trim() && files.length === 0)} className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 p-0">
-                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </form>
-            <div className="text-[10px] sm:text-xs text-muted-foreground">
-              Each message costs 1 credit.
-            </div>
-          </div>
-
-        </CardContent>
-      </Card>
-        </TabsContent>
-        <TabsContent value="mindmap" className="flex-1 m-0 flex flex-col min-h-0">
-          <TutorMindMap initialState={tutorState.mindmap} onSave={(mm) => saveTutorState({ ...tutorState, mindmap: mm })} />
-        </TabsContent>
-        <TabsContent value="youtube" className="flex-1 m-0 flex flex-col min-h-0">
-          <TutorYouTube initialState={tutorState.youtube} onSave={(yt) => saveTutorState({ ...tutorState, youtube: yt })} />
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="mindmap" className="flex-1 m-0 flex flex-col min-h-0">
+            <TutorMindMap initialState={tutorState.mindmap} onSave={(mm) => saveTutorState({ ...tutorState, mindmap: mm })} />
+          </TabsContent>
+          <TabsContent value="youtube" className="flex-1 m-0 flex flex-col min-h-0">
+            <TutorYouTube initialState={tutorState.youtube} onSave={(yt) => saveTutorState({ ...tutorState, youtube: yt })} />
+          </TabsContent>
+        </Tabs>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 min-h-0">
           <div className="relative">

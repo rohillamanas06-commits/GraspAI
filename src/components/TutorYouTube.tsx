@@ -35,15 +35,15 @@ export function TutorYouTube({ initialState, onSave }: TutorYouTubeProps) {
   const generateFlashcards = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return toast.error("Please enter a YouTube URL.");
-    
+
     setLoading(true);
-    
+
     try {
       const res = await api<{ message: string, flashcards: Flashcard[] }>("/api/tutor/youtube", {
         method: "POST",
         body: { url }
       });
-      
+
       const cards = res.flashcards || [];
       setFlashcards(cards);
       onSave({ url, flashcards: cards });
@@ -106,7 +106,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f0e8;color:#3d2e1
   return (
     <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card mt-0">
       <CardContent className="flex flex-col flex-1 p-4 sm:p-6 overflow-hidden relative space-y-4">
-        
+
         {flashcards.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-60 min-h-0">
             <Youtube className="h-12 w-12 mb-4" />
@@ -154,10 +154,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f0e8;color:#3d2e1
 
         <div className="shrink-0 pt-2 border-t border-border flex flex-col gap-2">
           <form onSubmit={generateFlashcards} className="flex items-center gap-2">
-            <Input 
-              placeholder="https://www.youtube.com/watch?v=..." 
-              value={url} 
-              onChange={(e) => setUrl(e.target.value)} 
+            <Input
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
               disabled={loading || flashcards.length > 0}
               className="flex-1"
             />

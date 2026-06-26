@@ -252,8 +252,8 @@ function VivaPanel({ sessionId, vivaState, updateVivaState }: { sessionId: strin
       <CardContent className="flex flex-col flex-1 items-center justify-center p-6 space-y-8 text-center overflow-auto pt-6">
         {!question ? (
           <div className="space-y-4">
-            <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
-              <Headset className="h-6 w-6 text-primary" />
+            <div className="mx-auto mb-4 text-primary/60">
+              <Headset className="h-12 w-12 mx-auto" />
             </div>
             <p className="text-muted-foreground">The AI examiner will ask you a question aloud. Use your microphone to answer.</p>
             <Button onClick={startViva}>Start Viva Exam (1 Credit)</Button>
@@ -355,8 +355,8 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
   if (!questions) {
     return (
       <Card className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
-          <BrainCircuit className="h-6 w-6 text-primary" />
+        <div className="mx-auto mb-4 text-primary/60">
+          <BrainCircuit className="h-12 w-12 mx-auto" />
         </div>
         <p className="text-muted-foreground">Generate a 10-question automated mock test to evaluate your readiness.</p>
         <Button onClick={generateMCQ}>Generate Mock Test (1 Credit)</Button>

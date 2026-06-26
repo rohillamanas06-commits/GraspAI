@@ -98,11 +98,11 @@ function TutorMindMapInner({ initialState, onSave }: TutorMindMapProps) {
     const ys = currentNodes.map(n => (n as any).positionAbsolute?.y ?? n.position.y);
     const minX = Math.min(...xs) - 100;
     const minY = Math.min(...ys) - 100;
-    
+
     // Calculate max bounds taking into account the rendered node sizes
     const maxX = Math.max(...currentNodes.map(n => ((n as any).positionAbsolute?.x ?? n.position.x) + (n.measured?.width ?? 200))) + 100;
     const maxY = Math.max(...currentNodes.map(n => ((n as any).positionAbsolute?.y ?? n.position.y) + (n.measured?.height ?? 100))) + 100;
-    
+
     const w = maxX - minX;
     const h = maxY - minY;
 
@@ -122,7 +122,7 @@ function TutorMindMapInner({ initialState, onSave }: TutorMindMapProps) {
       const src = nodeMap.get(e.source);
       const tgt = nodeMap.get(e.target);
       if (!src || !tgt) return '';
-      
+
       const sWidth = src.measured?.width || (src.style?.width as number) || 150;
       const sHeight = src.measured?.height || (src.style?.minHeight as number) || 40;
       const tWidth = tgt.measured?.width || (tgt.style?.width as number) || 150;
@@ -132,7 +132,7 @@ function TutorMindMapInner({ initialState, onSave }: TutorMindMapProps) {
       const sy = (((src as any).positionAbsolute?.y ?? src.position.y) - minY) + sHeight / 2;
       const tx = (((tgt as any).positionAbsolute?.x ?? tgt.position.x) - minX) + tWidth / 2;
       const ty = (((tgt as any).positionAbsolute?.y ?? tgt.position.y) - minY) + tHeight / 2;
-      
+
       return `<line x1="${sx}" y1="${sy}" x2="${tx}" y2="${ty}" stroke="#a88a5e" stroke-width="1.5" opacity="0.5"/>`;
     }).join("");
 
@@ -174,11 +174,11 @@ ${nodesHtml}
   const generateMap = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() && !file) return toast.error("Please enter a syllabus or text to convert.");
-    
+
     setLoading(true);
     setNodes([]);
     setEdges([]);
-    
+
     try {
       const fd = new FormData();
       fd.append("text", text);
@@ -189,13 +189,13 @@ ${nodesHtml}
         body: fd,
         isForm: true
       });
-      
+
       const newNodes = autoSizeNodes(res.mindmap.nodes || []);
       const newEdges = res.mindmap.edges || [];
       setNodes(newNodes);
       setEdges(newEdges);
       onSave({ text, nodes: newNodes, edges: newEdges });
-      
+
       toast.success("Mind map generated successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to generate mind map");
@@ -216,7 +216,7 @@ ${nodesHtml}
   return (
     <Card className="flex flex-col flex-1 min-h-0 overflow-hidden border-border bg-card mt-0">
       <CardContent className="flex flex-col flex-1 p-4 sm:p-6 overflow-hidden relative space-y-4">
-        
+
         {nodes.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-60 min-h-0">
             <Network className="h-12 w-12 mb-4" />
@@ -275,10 +275,10 @@ ${nodesHtml}
                 <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
                 <input type="file" accept=".pdf,.txt,.doc,.docx" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
               </label>
-              <Input 
-                placeholder={file ? "Add specific instructions (optional)..." : "Paste syllabus or notes here..."} 
-                value={text} 
-                onChange={(e) => setText(e.target.value)} 
+              <Input
+                placeholder={file ? "Add specific instructions (optional)..." : "Paste syllabus or notes here..."}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
                 disabled={loading}
                 className="flex-1 h-10 sm:h-12"
               />
