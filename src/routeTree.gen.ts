@@ -18,7 +18,6 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppTutorRouteImport } from './routes/app.tutor'
 import { Route as AppStudyRouteImport } from './routes/app.study'
 import { Route as AppMockTestRouteImport } from './routes/app.mock-test'
-import { Route as AppLeaderboardRouteImport } from './routes/app.leaderboard'
 import { Route as AppExtensionRouteImport } from './routes/app.extension'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as LegalTermsRouteImport } from './routes/_legal.terms'
@@ -73,11 +72,6 @@ const AppStudyRoute = AppStudyRouteImport.update({
 const AppMockTestRoute = AppMockTestRouteImport.update({
   id: '/mock-test',
   path: '/mock-test',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExtensionRoute = AppExtensionRouteImport.update({
@@ -150,7 +144,6 @@ export interface FileRoutesByFullPath {
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/extension': typeof AppExtensionRoute
-  '/app/leaderboard': typeof AppLeaderboardRoute
   '/app/mock-test': typeof AppMockTestRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
@@ -171,7 +164,6 @@ export interface FileRoutesByTo {
   '/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/extension': typeof AppExtensionRoute
-  '/app/leaderboard': typeof AppLeaderboardRoute
   '/app/mock-test': typeof AppMockTestRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
@@ -195,7 +187,6 @@ export interface FileRoutesById {
   '/_legal/terms': typeof LegalTermsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/extension': typeof AppExtensionRoute
-  '/app/leaderboard': typeof AppLeaderboardRoute
   '/app/mock-test': typeof AppMockTestRoute
   '/app/study': typeof AppStudyRoute
   '/app/tutor': typeof AppTutorRoute
@@ -219,7 +210,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/app/dashboard'
     | '/app/extension'
-    | '/app/leaderboard'
     | '/app/mock-test'
     | '/app/study'
     | '/app/tutor'
@@ -240,7 +230,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/app/dashboard'
     | '/app/extension'
-    | '/app/leaderboard'
     | '/app/mock-test'
     | '/app/study'
     | '/app/tutor'
@@ -263,7 +252,6 @@ export interface FileRouteTypes {
     | '/_legal/terms'
     | '/app/dashboard'
     | '/app/extension'
-    | '/app/leaderboard'
     | '/app/mock-test'
     | '/app/study'
     | '/app/tutor'
@@ -346,13 +334,6 @@ declare module '@tanstack/react-router' {
       path: '/mock-test'
       fullPath: '/app/mock-test'
       preLoaderRoute: typeof AppMockTestRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/leaderboard': {
-      id: '/app/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/app/leaderboard'
-      preLoaderRoute: typeof AppLeaderboardRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/extension': {
@@ -458,7 +439,6 @@ const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppExtensionRoute: typeof AppExtensionRoute
-  AppLeaderboardRoute: typeof AppLeaderboardRoute
   AppMockTestRoute: typeof AppMockTestRoute
   AppStudyRoute: typeof AppStudyRoute
   AppTutorRoute: typeof AppTutorRoute
@@ -471,7 +451,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppExtensionRoute: AppExtensionRoute,
-  AppLeaderboardRoute: AppLeaderboardRoute,
   AppMockTestRoute: AppMockTestRoute,
   AppStudyRoute: AppStudyRoute,
   AppTutorRoute: AppTutorRoute,

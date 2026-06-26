@@ -22,7 +22,6 @@ const items = [
   { title: "Study Agent", url: "/app/study", icon: BookOpen },
   { title: "AI Tutor", url: "/app/tutor", icon: GraduationCap },
   { title: "Mock Test", url: "/app/mock-test", icon: ClipboardList },
-  { title: "Leaderboard", url: "/app/leaderboard", icon: Trophy },
   { title: "Extension", url: "/app/extension", icon: Puzzle },
 ] as const;
 
