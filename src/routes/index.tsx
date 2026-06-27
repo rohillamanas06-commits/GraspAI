@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useEffect, useState } from "react";
-import { LogIn, LayoutDashboard, ArrowRight } from "lucide-react";
+import { LogIn, LayoutDashboard, ArrowRight, Volume2, VolumeX } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Footer } from "@/components/Footer";
 
@@ -77,7 +77,9 @@ const stats = [
 function Index() {
   const { user } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [visible, setVisible] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = 0.5;
@@ -86,8 +88,32 @@ function Index() {
     return () => clearTimeout(t);
   }, []);
 
+  const toggleMute = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      if (isMuted) {
+        audioRef.current.play().catch(console.error);
+      }
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current && audioRef.current.currentTime >= 12) {
+      audioRef.current.currentTime = 0;
+    }
+  };
+
   return (
     <div className="mocha flex min-h-screen w-full flex-col bg-background text-foreground">
+      <audio
+        ref={audioRef}
+        src="/apalonbeats-relax-relaxing-music-540590.mp3"
+        autoPlay
+        muted
+        loop
+        onTimeUpdate={handleTimeUpdate}
+      />
       {/* ── Hero video — completely clean, no overlay text ──────── */}
       <main className="relative min-h-screen w-full overflow-hidden shrink-0">
         <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between bg-black/90 backdrop-blur-md px-4 py-3 sm:px-10 sm:py-4 border-b border-white/10">
@@ -121,6 +147,19 @@ function Index() {
           className="absolute inset-0 h-full w-full object-cover object-bottom contrast-110"
         />
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle,transparent_60%,rgba(0,0,0,0.5)_120%)]" />
+
+        {/* Audio Toggle Button at Bottom Right */}
+        <button 
+          onClick={toggleMute} 
+          className="absolute bottom-4 right-6 sm:bottom-6 sm:right-10 z-20 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur-md transition-all rounded-full p-3 flex items-center justify-center border border-white/10"
+          aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+        >
+          {isMuted ? (
+            <VolumeX className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+          ) : (
+            <Volume2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+          )}
+        </button>
       </main>
 
       {/* ── Below-fold content — always mocha ───────────────────── */}
