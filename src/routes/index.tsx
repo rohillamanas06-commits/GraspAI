@@ -168,18 +168,18 @@ function Index() {
         style={{ opacity: visible ? 1 : 0 }}
       >
         {/* ── Refined Perspectives Quote Banner ─────────────────── */}
-        <section className="bg-[#e9ded1] border-y border-border/50 text-foreground">
+        <section className="bg-[#e9ded1] border-y border-border/50 text-[#3a2f28]">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-6">
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 sm:gap-6">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 shrink-0 hidden md:block">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3a2f28]/60 shrink-0 hidden md:block">
                 Refined Perspectives
               </span>
-              <div className="hidden md:block h-4 border-l border-foreground/20"></div>
+              <div className="hidden md:block h-4 border-l border-[#3a2f28]/20"></div>
               <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 sm:gap-4">
-                <p className="font-serif text-base sm:text-lg italic text-foreground/90 leading-snug">
+                <p className="font-serif text-base sm:text-lg italic text-[#3a2f28]/90 leading-snug">
                   "An investment in knowledge pays the best interest."
                 </p>
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-foreground shrink-0 opacity-80">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#3a2f28] shrink-0 opacity-80">
                   — Benjamin Franklin
                 </span>
               </div>
