@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
-import { Paperclip, Send, X, Bot, User, Trash2, Coffee, Mic, Copy, Check, Volume2, VolumeX } from "lucide-react";
+import { Paperclip, Send, X, Bot, User, Trash2, Coffee, Mic, Copy, Check, Volume2, VolumeX, Image as ImageIcon, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -200,13 +200,17 @@ function TutorPage() {
                             : "bg-muted/50 text-foreground border border-border rounded-tl-sm"
                             }`}>
                             {msg.files && msg.files.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 mb-2">
-                                {msg.files.map((f, idx) => (
-                                  <div key={idx} className="flex items-center gap-1 bg-primary-foreground/20 rounded-md px-2 py-1 text-[10px]">
-                                    <Paperclip className="h-3 w-3" />
-                                    <span className="truncate max-w-[150px]">{f}</span>
-                                  </div>
-                                ))}
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {msg.files.map((f, idx) => {
+                                  const isImage = f.toLowerCase().endsWith('.png') || f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.jpeg');
+                                  const Icon = isImage ? ImageIcon : FileText;
+                                  return (
+                                    <div key={idx} className="flex items-center gap-1.5 bg-black/10 rounded-md px-2.5 py-1.5 text-xs font-medium border border-black/5 shadow-sm">
+                                      <Icon className="h-3.5 w-3.5 opacity-70" />
+                                      <span className="truncate max-w-[180px] text-current">{f}</span>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                             {msg.content}
