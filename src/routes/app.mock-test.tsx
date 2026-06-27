@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { CoffeeLoading } from "@/components/ui/coffee-loading";
+
 import { Mic, MicOff, CheckCircle2, XCircle, BrainCircuit, Volume2, RotateCcw, Headset, Coffee } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -85,9 +85,13 @@ function MockTestPage() {
           <p className="text-sm text-muted-foreground mt-1">Choose an active study session from the menu to brew up a mock test.</p>
         </Card>
       ) : !isLoaded ? (
-        <Card className="flex-1 flex items-center justify-center">
-          <CoffeeLoading text="Loading your tests..." />
-        </Card>
+        <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 min-h-0">
+          <div className="relative">
+            <Coffee className="h-16 w-16 text-primary/80 animate-pulse" />
+          </div>
+          <h2 className="text-xl font-semibold">Brewing your tests...</h2>
+          <p className="text-muted-foreground text-sm">Please wait while we prepare your mock test environment.</p>
+        </div>
       ) : (
         <Tabs defaultValue="viva" className="flex flex-1 flex-col min-h-0">
           <TabsList className="shrink-0 flex w-full overflow-x-auto">
@@ -233,8 +237,12 @@ function VivaPanel({ sessionId, vivaState, updateVivaState }: { sessionId: strin
 
   if (loading) {
     return (
-      <Card className="flex-1 flex items-center justify-center">
-        <CoffeeLoading text="Examiner is thinking..." />
+      <Card className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 min-h-0">
+        <div className="relative">
+          <Coffee className="h-16 w-16 text-primary/80 animate-pulse" />
+        </div>
+        <h2 className="text-xl font-semibold">Examiner is thinking...</h2>
+        <p className="text-muted-foreground text-sm">Please wait while the AI generates your next question.</p>
       </Card>
     );
   }
@@ -346,8 +354,12 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
 
   if (loading) {
     return (
-      <Card className="flex-1 flex items-center justify-center">
-        <CoffeeLoading text="Crafting your multiple-choice test..." />
+      <Card className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 min-h-0">
+        <div className="relative">
+          <Coffee className="h-16 w-16 text-primary/80 animate-pulse" />
+        </div>
+        <h2 className="text-xl font-semibold">Crafting your test...</h2>
+        <p className="text-muted-foreground text-sm">Please wait while we brew your multiple-choice questions.</p>
       </Card>
     );
   }
