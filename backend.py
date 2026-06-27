@@ -558,6 +558,23 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
     user_dict = dict(user)
+    
+    # Check if streak is broken
+    last_studied = user_dict.get("last_studied")
+    if user_dict.get("streak_days", 0) > 0 and last_studied:
+        from datetime import date
+        today = date.today()
+        try:
+            last_date = date.fromisoformat(last_studied)
+            if (today - last_date).days > 1:
+                user_dict["streak_days"] = 0
+                cur = db.cursor()
+                cur.execute("UPDATE users SET streak_days = 0 WHERE id = %s", (user["id"],))
+                db.commit()
+                cur.close()
+        except Exception:
+            pass
+
     user_dict["id"] = str(user_dict["id"])
     return user_dict
 
