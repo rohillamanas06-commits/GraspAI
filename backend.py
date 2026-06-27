@@ -1568,18 +1568,22 @@ def generate_past_papers(
         raise HTTPException(status_code=400, detail="Syllabus must be uploaded first.")
         
     prompt = f"""
-You are an expert examiner for Indian competitive exams.
-The user is preparing for: {req.exam_type}.
+You are an expert examiner.
+The user selected the exam format/style: {req.exam_type}.
 Their syllabus topics are: {topics_json}
 
-Generate exactly {req.num_questions} highly realistic past-paper questions for these topics, matching the typical difficulty and style of {req.exam_type}.
-Do not write long introductions. Be specific and accurate.
+Generate exactly {req.num_questions} highly realistic past-paper or mock questions for these topics.
+
+CRITICAL INSTRUCTIONS:
+1. Adapt the question format and difficulty to match the style of '{req.exam_type}'.
+2. If the topics DO NOT logically belong to the '{req.exam_type}' exam (e.g., Computer Science topics for a medical exam like NEET), do NOT claim the question actually appeared in that exam. Instead, use a generic label like "Mock {req.exam_type}-style Exam 2024" for the `exam_label`.
+3. If the topics DO belong to the exam, use a realistic label like "{req.exam_type} 2022".
 
 Return ONLY a JSON object with this exact structure:
 {{
   "questions": [
     {{
-      "exam_label": "{req.exam_type} 2022 (or similar year)",
+      "exam_label": "The appropriate exam label (see rules above)",
       "topic": "Exact topic name from syllabus",
       "question": "The realistic question text",
       "answer": "The correct answer and a brief explanation"

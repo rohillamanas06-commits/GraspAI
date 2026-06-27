@@ -61,21 +61,23 @@ function MockTestPage() {
             Evaluate your readiness with Viva mode and automated Multiple-Choice Questions.
           </p>
         </div>
-        {dash?.sessions?.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">Active session:</Label>
-            <select
-              className="rounded-md border border-input bg-background px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
-              value={sessionId ?? ""}
-              onChange={(e) => setSessionId(e.target.value || null)}
-            >
-              <option value="">Select a session...</option>
-              {dash.sessions.map((s: any) => (
-                <option key={s.session_id} value={s.session_id}>{s.session_name}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="flex flex-col items-start sm:items-end gap-2">
+          {dash?.sessions?.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Active session:</Label>
+              <select
+                className="rounded-md border border-input bg-background px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+                value={sessionId ?? ""}
+                onChange={(e) => setSessionId(e.target.value || null)}
+              >
+                <option value="">Select a session...</option>
+                {dash.sessions.map((s: any) => (
+                  <option key={s.session_id} value={s.session_id}>{s.session_name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {!sessionId ? (
@@ -257,15 +259,20 @@ function VivaPanel({ sessionId, vivaState, updateVivaState }: { sessionId: strin
           </Button>
         </CardHeader>
       )}
-      <CardContent className="flex flex-col flex-1 items-center justify-center p-6 space-y-8 text-center overflow-auto pt-6">
+      <CardContent className="flex flex-col flex-1 items-center justify-center p-6 space-y-8 text-center overflow-auto pt-6 relative">
         {!question ? (
-          <div className="space-y-4">
-            <div className="mx-auto mb-4 text-primary/60">
-              <Headset className="h-12 w-12 mx-auto" />
+          <>
+            <div className="absolute top-4 left-4 text-xs font-medium text-muted-foreground">
+              1 Credit / Test
             </div>
-            <p className="text-muted-foreground">The AI examiner will ask you a question aloud. Use your microphone to answer.</p>
-            <Button onClick={startViva}>Start Viva Exam (1 Credit)</Button>
-          </div>
+            <div className="space-y-4">
+              <div className="mx-auto mb-4 text-primary/60">
+                <Headset className="h-12 w-12 mx-auto" />
+              </div>
+              <p className="text-muted-foreground">The AI examiner will ask you a question aloud. Use your microphone to answer.</p>
+              <Button onClick={startViva}>Start Viva Exam</Button>
+            </div>
+          </>
         ) : (
           <div className="w-full flex flex-col space-y-6">
             {feedback && (
@@ -298,7 +305,7 @@ function VivaPanel({ sessionId, vivaState, updateVivaState }: { sessionId: strin
               <p className="text-sm text-muted-foreground">{transcript || "Your transcribed answer will appear here..."}</p>
             </div>
 
-            <Button onClick={submitAnswer} disabled={!transcript.trim()} className="w-full sm:w-auto">Submit Answer (1 Credit)</Button>
+            <Button onClick={submitAnswer} disabled={!transcript.trim()} className="w-full sm:w-auto">Submit Answer</Button>
           </div>
         )}
       </CardContent>
@@ -366,12 +373,15 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
 
   if (!questions) {
     return (
-      <Card className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <Card className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4 relative">
+        <div className="absolute top-4 left-4 text-xs font-medium text-muted-foreground">
+          1 Credit / Test
+        </div>
         <div className="mx-auto mb-4 text-primary/60">
           <BrainCircuit className="h-12 w-12 mx-auto" />
         </div>
         <p className="text-muted-foreground">Generate a 10-question automated mock test to evaluate your readiness.</p>
-        <Button onClick={generateMCQ}>Generate Mock Test (1 Credit)</Button>
+        <Button onClick={generateMCQ}>Generate Mock Test</Button>
       </Card>
     );
   }
@@ -442,7 +452,7 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
         ))}
 
         <div className="pt-6 border-t border-border flex justify-between">
-          <Button variant="outline" onClick={generateMCQ}>Start New Test (1 Credit)</Button>
+          <Button variant="outline" onClick={generateMCQ}>Start New Test</Button>
           {!submitted && (
             <Button onClick={submitTest} disabled={Object.keys(answers).length < questions.length}>
               Submit Test
