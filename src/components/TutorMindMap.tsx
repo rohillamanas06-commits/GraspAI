@@ -40,8 +40,12 @@ function autoSizeNodes(nodes: Node[]): Node[] {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: 'var(--primary)',
+        color: 'var(--primary-foreground)',
+        borderColor: 'var(--border)',
+        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
       },
-      className: 'transition-all duration-200 hover:border-black hover:bg-black/5 hover:text-black hover:shadow-md',
+      className: 'border rounded-md transition-all duration-200 hover:opacity-90',
     };
   });
 }

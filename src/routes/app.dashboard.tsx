@@ -56,7 +56,7 @@ function DashboardPage() {
         </div>
         <button
           onClick={() => setIsBuyModalOpen(true)}
-          className="flex w-fit items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-500/30 hover:scale-105 transition-all cursor-pointer"
+          className="flex w-fit items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-sm font-bold text-amber-400 shadow-sm hover:bg-amber-500/30 hover:scale-105 transition-all cursor-pointer"
         >
           <Coins className="h-4 w-4" />
           <span>{data.user.credits}</span>

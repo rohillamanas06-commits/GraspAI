@@ -244,7 +244,7 @@ function VivaPanel({ sessionId, vivaState, updateVivaState }: { sessionId: strin
       {question && (
         <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
           <CardTitle className="text-base">Voice-Based Examiner</CardTitle>
-          <Button variant="ghost" size="icon" onClick={() => updateVivaState({ question: null, transcript: "", feedback: null })} title="Restart Viva Exam" className="text-muted-foreground hover:bg-muted">
+          <Button variant="ghost" size="icon" onClick={() => { window.speechSynthesis.cancel(); updateVivaState({ question: null, transcript: "", feedback: null }); }} title="Restart Viva Exam" className="text-muted-foreground hover:bg-muted">
             <RotateCcw className="h-4 w-4" />
           </Button>
         </CardHeader>
@@ -374,7 +374,7 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
               Score: {score} / {questions.length}
             </div>
           )}
-          <Button variant="ghost" size="icon" onClick={() => updateMcqState({ questions: null, answers: {}, submitted: false, score: 0 })} title="Restart MCQ Test" className="text-muted-foreground hover:bg-muted">
+          <Button variant="ghost" size="icon" onClick={() => { window.speechSynthesis.cancel(); updateMcqState({ questions: null, answers: {}, submitted: false, score: 0 }); }} title="Restart MCQ Test" className="text-muted-foreground hover:bg-muted">
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
@@ -397,9 +397,9 @@ function MCQPanel({ sessionId, mcqState, updateMcqState }: { sessionId: string, 
 
                 let btnStyle = "border-border text-foreground hover:bg-muted";
                 if (submitted) {
-                  if (isCorrect) btnStyle = "border-green-500 bg-green-500/20 text-green-900 font-medium";
-                  else if (isSelected && !isCorrect) btnStyle = "border-red-500 bg-red-500/20 text-red-900 font-medium";
-                  else btnStyle = "border-border opacity-50";
+                  if (isCorrect) btnStyle = "border-green-500 bg-green-500/20 text-green-400 font-medium";
+                  else if (isSelected && !isCorrect) btnStyle = "border-red-500 bg-red-500/20 text-red-400 font-medium";
+                  else btnStyle = "border-border opacity-50 text-foreground";
                 } else if (isSelected) {
                   btnStyle = "border-primary bg-primary/10 text-foreground font-medium";
                 }
