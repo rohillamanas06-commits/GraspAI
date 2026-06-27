@@ -3,6 +3,7 @@ import { useRef, useEffect, useState } from "react";
 import { LogIn, LayoutDashboard, ArrowRight, Volume2, VolumeX } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Footer } from "@/components/Footer";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -75,11 +76,12 @@ const stats = [
 /*  Component                                                         */
 /* ------------------------------------------------------------------ */
 function Index() {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [visible, setVisible] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [showCredits, setShowCredits] = useState(false);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = 0.5;
@@ -149,8 +151,8 @@ function Index() {
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle,transparent_60%,rgba(0,0,0,0.5)_120%)]" />
 
         {/* Audio Toggle Button at Bottom Right */}
-        <button 
-          onClick={toggleMute} 
+        <button
+          onClick={toggleMute}
           className="absolute bottom-4 right-6 sm:bottom-6 sm:right-10 z-20 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur-md transition-all rounded-full p-3 flex items-center justify-center border border-white/10"
           aria-label={isMuted ? "Unmute audio" : "Mute audio"}
         >
@@ -182,6 +184,17 @@ function Index() {
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#3a2f28] shrink-0 opacity-80">
                   — Benjamin Franklin
                 </span>
+                {user && (
+                  <>
+                    <div className="hidden sm:block h-4 border-l border-[#3a2f28]/20"></div>
+                    <button
+                      onClick={() => setShowCredits(true)}
+                      className="text-xs font-semibold text-[#3a2f28]/70 hover:text-[#3a2f28] transition-colors underline decoration-[#3a2f28]/30 hover:decoration-[#3a2f28] underline-offset-4"
+                    >
+                      Make an Investment
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -231,6 +244,14 @@ function Index() {
       </div>
 
       <Footer />
+      {user && (
+        <BuyCreditsModal
+          isOpen={showCredits}
+          onClose={() => setShowCredits(false)}
+          onSuccess={refresh}
+          currentCredits={user.credits}
+        />
+      )}
     </div>
   );
 }
