@@ -131,14 +131,15 @@ function PastPapersPage() {
               </Select>
             </div>
             
-            <div>
+            <div className="flex flex-col items-start">
               <Button 
                 onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : handleGenerate())} 
                 disabled={(user?.credits !== 0 && (isGenerating || isLoadingPapers))}
                 variant={user?.credits === 0 ? "secondary" : "default"}
               >
-                {user?.credits === 0 ? "Credits finished (Buy more)" : isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Questions (Costs 1 Credit)"}
+                {user?.credits === 0 ? "Credits finished (Buy more)" : isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : "Generate Questions"}
               </Button>
+              <p className="text-sm text-muted-foreground mt-2 ml-1">Each generation costs 1 credit.</p>
             </div>
           </CardContent>
         </Card>

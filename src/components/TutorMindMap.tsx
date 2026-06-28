@@ -229,7 +229,13 @@ ${nodesHtml}
           </div>
         ) : (
           <div ref={containerRef} className={`flex-1 overflow-hidden bg-muted/10 relative transition-all ${isFullscreen ? 'bg-background' : 'rounded-md border border-border'}`}>
-            <ReactFlow nodes={nodes} edges={edges} fitView proOptions={{ hideAttribution: true }}>
+            <ReactFlow 
+              nodes={nodes} 
+              edges={edges} 
+              fitView 
+              proOptions={{ hideAttribution: true }}
+              defaultEdgeOptions={{ style: { stroke: 'var(--foreground)', opacity: 0.4, strokeWidth: 2 } }}
+            >
               <Background />
             </ReactFlow>
             <div className="absolute top-4 right-4 z-10 flex gap-2">
