@@ -100,19 +100,19 @@ function StudyPage() {
               <CardHeader className="py-4 sm:py-6"><CardTitle className="text-sm sm:text-base font-medium">Syllabus extracted</CardTitle></CardHeader>
               <CardContent className="space-y-4 py-0 pb-4 sm:py-6">
                 <p className="text-xs sm:text-sm text-muted-foreground">A syllabus PDF has already been processed for this session.</p>
-                
+
                 <div className="space-y-2 border-t border-border pt-4 mt-2">
                   <Label className="text-xs sm:text-sm">Update session name</Label>
                   <div className="flex gap-2">
-                    <Input 
+                    <Input
                       className="h-8 sm:h-10 text-xs sm:text-sm"
-                      placeholder="e.g. Midterms" 
+                      placeholder="e.g. Midterms"
                       id={`session-name-${sessionId}`}
-                      defaultValue="" 
+                      defaultValue=""
                     />
-                    <Button 
+                    <Button
                       className="h-8 sm:h-10 text-xs sm:text-sm"
-                      variant="outline" 
+                      variant="outline"
                       disabled={renaming}
                       onClick={async () => {
                         const el = document.getElementById(`session-name-${sessionId}`) as HTMLInputElement;
@@ -210,22 +210,22 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
           <Input className="h-8 sm:h-10 text-xs sm:text-sm" placeholder="e.g. Spring midterm" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-1 sm:space-y-2 flex-1 flex flex-col min-h-0 min-h-[120px]">
-            <Label className="text-xs sm:text-sm">PDF file(s) - Max 10 (Total 100MB)</Label>
-            <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
-              <Upload className="h-4 w-4" />
-              <span className="text-center">{files.length > 0 ? `${files.length} file(s) selected` : "Click to choose PDF(s) (Ctrl+Click to select many)"}</span>
-              <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => {
-                const selected = Array.from(e.target.files ?? []);
-                if (files.length + selected.length > 10) return toast.error("Maximum 10 PDFs allowed");
-                
-                const MAX_TOTAL_MB = 100;
-                const totalSize = [...files, ...selected].reduce((acc, file) => acc + file.size, 0);
-                if (totalSize > MAX_TOTAL_MB * 1024 * 1024) {
-                  toast.error(`Total file size exceeds ${MAX_TOTAL_MB}MB.`);
-                  return;
-                }
+          <Label className="text-xs sm:text-sm">PDF file(s) - Max 10 (Total 100MB)</Label>
+          <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 p-4 sm:p-8 text-xs sm:text-sm text-muted-foreground transition hover:bg-muted">
+            <Upload className="h-4 w-4" />
+            <span className="text-center">{files.length > 0 ? `${files.length} file(s) selected` : "Click to choose PDF(s) (Ctrl+Click to select many)"}</span>
+            <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => {
+              const selected = Array.from(e.target.files ?? []);
+              if (files.length + selected.length > 10) return toast.error("Maximum 10 PDFs allowed");
 
-                setFiles(prev => [...prev, ...selected]);
+              const MAX_TOTAL_MB = 100;
+              const totalSize = [...files, ...selected].reduce((acc, file) => acc + file.size, 0);
+              if (totalSize > MAX_TOTAL_MB * 1024 * 1024) {
+                toast.error(`Total file size exceeds ${MAX_TOTAL_MB}MB.`);
+                return;
+              }
+
+              setFiles(prev => [...prev, ...selected]);
               e.target.value = "";
             }} />
           </label>
@@ -242,20 +242,21 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
             </div>
           )}
         </div>
-        <Button 
-          onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : submit())} 
-          disabled={(user?.credits !== 0 && files.length === 0) || loading} 
+        <Button
+          onClick={() => (user?.credits === 0 ? setIsBuyModalOpen(true) : submit())}
+          disabled={(user?.credits !== 0 && files.length === 0) || loading}
           className="w-full shrink-0 h-8 sm:h-10 text-xs sm:text-sm"
           variant={user?.credits === 0 ? "secondary" : "default"}
         >
-          {user?.credits === 0 ? "Credits finished" : loading ? "Extracting…" : "Upload & extract (Costs 1 Credit)"}
+          {user?.credits === 0 ? "Credits finished" : loading ? "Extracting…" : "Upload & extract"}
         </Button>
+        <p className="text-sm text-muted-foreground text-center -mt-2">Each extraction costs 1 credit.</p>
       </CardContent>
-      <BuyCreditsModal 
-        isOpen={isBuyModalOpen} 
-        onClose={() => setIsBuyModalOpen(false)} 
-        onSuccess={() => refresh()} 
-        currentCredits={user?.credits || 0} 
+      <BuyCreditsModal
+        isOpen={isBuyModalOpen}
+        onClose={() => setIsBuyModalOpen(false)}
+        onSuccess={() => refresh()}
+        currentCredits={user?.credits || 0}
       />
     </Card>
   );
@@ -351,7 +352,7 @@ function PlanPanel({ sessionId, onDone }: { sessionId: string; onDone: () => voi
             <div className="space-y-1 sm:space-y-2"><Label className="text-xs sm:text-sm">Daily hours</Label><Input type="number" min={1} max={16} value={hours} onChange={(e) => setHours(Number(e.target.value))} className="h-8 sm:h-10 text-xs sm:text-sm" /></div>
           </div>
           <div className="space-y-1 sm:space-y-2"><Label className="text-xs sm:text-sm">Weak subjects</Label><Input className="h-8 sm:h-10 text-xs sm:text-sm" value={weak} onChange={(e) => setWeak(e.target.value)} placeholder="e.g. Calculus" /></div>
-          
+
           <div className="flex gap-2">
             <Button onClick={generate} disabled={loading} className="flex-1 h-8 sm:h-10 text-xs sm:text-sm">{loading ? "Planning…" : planData?.plan ? "Regenerate" : "Generate plan"}</Button>
             {planData?.plan ? (
@@ -742,7 +743,7 @@ function AdaptPanel({ sessionId, onDone }: { sessionId: string; onDone: () => vo
 /* ───── Export ───── */
 function ExportPanel({ sessionId, onOpenSession }: { sessionId: string; onOpenSession: () => void }) {
   const [downloading, setDownloading] = useState<string | null>(null);
-  
+
   const download = async (kind: "anki" | "html" | "zip") => {
     setDownloading(kind);
     try {

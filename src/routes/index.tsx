@@ -153,7 +153,7 @@ function Index() {
         {/* Audio Toggle Button at Bottom Right */}
         <button
           onClick={toggleMute}
-          className="absolute bottom-4 right-6 sm:bottom-6 sm:right-10 z-20 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur-md transition-all rounded-full p-3 flex items-center justify-center border border-white/10"
+          className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur-md transition-all rounded-full p-3 flex items-center justify-center border border-white/10"
           aria-label={isMuted ? "Unmute audio" : "Mute audio"}
         >
           {isMuted ? (
