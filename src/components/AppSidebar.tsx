@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee, Leaf, GraduationCap, User2, ChevronUp, Puzzle, Trophy, ClipboardList } from "lucide-react";
+import { Home, LayoutDashboard, BookOpen, LogOut, Moon, Sun, Coffee, Leaf, GraduationCap, User2, ChevronUp, Puzzle, Trophy, ClipboardList, Palette, Cloud, Droplet } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +12,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger, 
+  DropdownMenuSub, 
+  DropdownMenuSubTrigger, 
+  DropdownMenuPortal, 
+  DropdownMenuSubContent 
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 
@@ -26,11 +35,11 @@ const items = [
 ] as const;
 
 export function AppSidebar() {
-  const { state, isMobile, setOpenMobile } = useSidebar();
+  const { setOpenMobile, isMobile, state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { logout, user } = useAuth();
-  const { theme, toggle } = useTheme();
+  const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const closeMobile = () => {
@@ -110,10 +119,28 @@ export function AppSidebar() {
                 align={isMobile ? "end" : "end"}
                 className="w-56 rounded-lg"
               >
-                <DropdownMenuItem onClick={() => { toggle(); closeMobile(); }} className="cursor-pointer">
-                  {theme === "mocha" ? <Leaf className="mr-2 h-4 w-4" /> : <Coffee className="mr-2 h-4 w-4" />}
-                  {theme === "mocha" ? "Latte mode" : "Mocha mode"}
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Theme Changer</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => { setTheme("mocha"); closeMobile(); }} className="cursor-pointer">
+                        <Coffee className="mr-2 h-4 w-4" /> Mocha
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTheme("cappuccino"); closeMobile(); }} className="cursor-pointer">
+                        <Cloud className="mr-2 h-4 w-4" /> Cappuccino
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTheme("latte"); closeMobile(); }} className="cursor-pointer">
+                        <Droplet className="mr-2 h-4 w-4" /> Latte
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTheme("matcha"); closeMobile(); }} className="cursor-pointer">
+                        <Leaf className="mr-2 h-4 w-4" /> Matcha
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
                 <DropdownMenuItem onClick={onSignOut} className="text-red-500 cursor-pointer focus:bg-red-500/10 focus:text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out

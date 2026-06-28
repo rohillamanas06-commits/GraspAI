@@ -1,31 +1,45 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-type Theme = "mocha" | "latte";
-const Ctx = createContext<{ theme: Theme; toggle: () => void } | null>(null);
+type Theme = "mocha" | "latte" | "cappuccino" | "matcha";
+const Ctx = createContext<{ theme: Theme; toggle: () => void; setTheme: (t: Theme) => void } | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("mocha");
+  const [theme, setTheme] = useState<Theme>("cappuccino");
 
   useEffect(() => {
     let saved = (typeof window !== "undefined" && localStorage.getItem("grasp_theme")) as string | null;
-    if (!saved || saved === "light" || saved === "dark" || saved === "cafe") saved = "mocha";
+    if (!saved || saved === "light" || saved === "dark" || saved === "cafe") saved = "cappuccino";
     const initial: Theme = saved as Theme;
     setTheme(initial);
-    document.documentElement.classList.remove("light", "dark", "cafe", "mocha", "latte");
+    document.documentElement.classList.remove("light", "dark", "cafe", "mocha", "latte", "cappuccino", "matcha");
     document.documentElement.classList.add(initial);
   }, []);
 
   const toggle = () => {
     setTheme((t) => {
-      const next: Theme = t === "mocha" ? "latte" : "mocha";
-      document.documentElement.classList.remove("mocha", "latte");
+      let next: Theme;
+      if (t === "mocha") next = "cappuccino";
+      else if (t === "cappuccino") next = "latte";
+      else if (t === "latte") next = "matcha";
+      else next = "mocha";
+      
+      document.documentElement.classList.remove("mocha", "latte", "cappuccino", "matcha");
       document.documentElement.classList.add(next);
       localStorage.setItem("grasp_theme", next);
       return next;
     });
   };
 
-  return <Ctx.Provider value={{ theme, toggle }}>{children}</Ctx.Provider>;
+  const setThemeDirect = (next: Theme) => {
+    setTheme(() => {
+      document.documentElement.classList.remove("mocha", "latte", "cappuccino", "matcha");
+      document.documentElement.classList.add(next);
+      localStorage.setItem("grasp_theme", next);
+      return next;
+    });
+  };
+
+  return <Ctx.Provider value={{ theme, toggle, setTheme: setThemeDirect }}>{children}</Ctx.Provider>;
 }
 
 export function useTheme() {
