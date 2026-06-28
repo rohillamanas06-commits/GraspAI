@@ -126,22 +126,22 @@ export function AppSidebar() {
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => { setTheme("mocha"); closeMobile(); }} className="cursor-pointer">
-                        <Coffee className="mr-2 h-4 w-4" /> Mocha
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setTheme("cappuccino"); closeMobile(); }} className="cursor-pointer">
                         <Cloud className="mr-2 h-4 w-4" /> Cappuccino
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setTheme("latte"); closeMobile(); }} className="cursor-pointer">
-                        <Droplet className="mr-2 h-4 w-4" /> Latte
+                      <DropdownMenuItem onClick={() => { setTheme("mocha"); closeMobile(); }} className="cursor-pointer">
+                        <Coffee className="mr-2 h-4 w-4" /> Mocha
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setTheme("matcha"); closeMobile(); }} className="cursor-pointer">
                         <Leaf className="mr-2 h-4 w-4" /> Matcha
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTheme("latte"); closeMobile(); }} className="cursor-pointer">
+                        <Droplet className="mr-2 h-4 w-4" /> Latte
+                      </DropdownMenuItem>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
-                <DropdownMenuItem onClick={onSignOut} className="text-red-500 cursor-pointer focus:bg-red-500/10 focus:text-red-500">
+                <DropdownMenuItem onClick={onSignOut} className="text-destructive font-medium cursor-pointer focus:bg-destructive/10 focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>

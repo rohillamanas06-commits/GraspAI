@@ -18,10 +18,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const toggle = () => {
     setTheme((t) => {
       let next: Theme;
-      if (t === "mocha") next = "cappuccino";
-      else if (t === "cappuccino") next = "latte";
-      else if (t === "latte") next = "matcha";
-      else next = "mocha";
+      if (t === "cappuccino") next = "mocha";
+      else if (t === "mocha") next = "matcha";
+      else if (t === "matcha") next = "latte";
+      else next = "cappuccino";
       
       document.documentElement.classList.remove("mocha", "latte", "cappuccino", "matcha");
       document.documentElement.classList.add(next);
