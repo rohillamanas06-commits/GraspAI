@@ -1,11 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Flame, BookOpenCheck, Layers, CalendarDays, Coffee, Coins } from "lucide-react";
-import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 
 export const Route = createFileRoute("/app/dashboard")({
@@ -32,7 +30,6 @@ interface DashboardData {
 
 function DashboardPage() {
   const queryClient = useQueryClient();
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard"],
@@ -54,13 +51,6 @@ function DashboardPage() {
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Member since {data.user.member_since}</p>
         </div>
-        <button
-          onClick={() => setIsBuyModalOpen(true)}
-          className="flex w-fit items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-sm font-bold text-amber-400 shadow-sm cursor-pointer"
-        >
-          <Coffee className="h-4 w-4" />
-          <span>{data.user.credits}</span>
-        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -176,15 +166,6 @@ function DashboardPage() {
         )}
       </div>
 
-      <BuyCreditsModal
-        isOpen={isBuyModalOpen}
-        onClose={() => setIsBuyModalOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-          queryClient.invalidateQueries({ queryKey: ["user"] });
-        }}
-        currentCredits={data.user.credits}
-      />
     </div>
   );
 }
