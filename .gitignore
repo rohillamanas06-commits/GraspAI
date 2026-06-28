@@ -8,3 +8,6 @@
 /venv
 /tmp
 *.db
+/.agents
+/skills
+/ui-ux-pro-max-skill
