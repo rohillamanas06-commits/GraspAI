@@ -47,7 +47,7 @@ function DashboardPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight sm:gap-3 sm:text-3xl">
-            Welcome back{data.user.full_name ? `, ${data.user.full_name.split(" ")[0]}` : ""}.
+            Time to brew some knowledge{data.user.full_name ? `, ${data.user.full_name.split(" ")[0]}` : ""}.
           </h1>
           <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Member since {data.user.member_since}</p>
         </div>
