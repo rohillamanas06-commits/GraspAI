@@ -136,9 +136,7 @@ function TutorPage() {
         isForm: true
       });
 
-      if (r.fallback) {
-        toast.info("Gemini not available, switched to Groq");
-      }
+
 
       setMessages(prev => [...prev, { role: "assistant", content: r.response }]);
     } catch (err: any) {
