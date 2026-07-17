@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, API_BASE, getAccessToken } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
-import { Check, X, SkipForward, Upload, Download, Pencil, Volume2, VolumeX, CalendarDays } from "lucide-react";
+import { Check, X, SkipForward, Upload, Download, Pencil, Volume2, VolumeX, CalendarDays, Cloud } from "lucide-react";
 import { CoffeeLoading } from "@/components/ui/coffee-loading";
+import drivePickerModule from 'react-google-drive-picker';
+const useDrivePicker = (typeof drivePickerModule === 'function' ? drivePickerModule : (drivePickerModule as any).default) as typeof drivePickerModule;
 import { useAuth } from "@/lib/auth";
 import { BuyCreditsModal } from "@/components/BuyCreditsModal";
 
@@ -183,6 +185,76 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
   const { refresh, user } = useAuth();
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
+  const [openPicker, authRes] = useDrivePicker();
+  const tokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (authRes?.access_token) {
+      tokenRef.current = authRes.access_token;
+    }
+  }, [authRes]);
+
+  const handleOpenPicker = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const developerKey = import.meta.env.VITE_GOOGLE_API_KEY;
+
+    if (!clientId || !developerKey) {
+      toast.error("Google Drive integration is not configured. Add VITE_GOOGLE_CLIENT_ID and VITE_GOOGLE_API_KEY to .env");
+      return;
+    }
+
+    openPicker({
+      clientId,
+      developerKey,
+      viewId: "DOCS",
+      viewMimeTypes: "application/pdf",
+      showUploadView: false,
+      showUploadFolders: false,
+      supportDrives: true,
+      multiselect: true,
+      callbackFunction: async (data: any) => {
+        if (data.action === 'picked') {
+          const token = tokenRef.current;
+          if (!token) {
+            toast.error("Authentication failed. No access token.");
+            return;
+          }
+          setLoading(true);
+          try {
+            const newFiles = await Promise.all(data.docs.map(async (doc: any) => {
+              const res = await fetch(`https://www.googleapis.com/drive/v3/files/${doc.id}?alt=media`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (!res.ok) throw new Error(`Failed to download ${doc.name}`);
+              const blob = await res.blob();
+              return new File([blob], doc.name, { type: doc.mimeType });
+            }));
+            
+            setFiles(prev => {
+              const total = prev.length + newFiles.length;
+              if (total > 10) {
+                toast.error("Maximum 10 PDFs allowed.");
+                return prev;
+              }
+              const MAX_TOTAL_MB = 100;
+              const totalSize = [...prev, ...newFiles].reduce((acc, file) => acc + file.size, 0);
+              if (totalSize > MAX_TOTAL_MB * 1024 * 1024) {
+                toast.error(`Total file size exceeds ${MAX_TOTAL_MB}MB.`);
+                return prev;
+              }
+              return [...prev, ...newFiles];
+            });
+            toast.success(`Imported ${newFiles.length} file(s) from Google Drive.`);
+          } catch (e: any) {
+            toast.error(e.message || "Failed to import from Google Drive.");
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+    });
+  };
+
   const submit = async () => {
     if (files.length === 0) return toast.error("Choose a PDF first");
     const fd = new FormData();
@@ -229,6 +301,10 @@ function UploadSyllabus({ onCreated }: { onCreated: (sid: string) => void }) {
               e.target.value = "";
             }} />
           </label>
+          <Button variant="outline" size="sm" onClick={handleOpenPicker} className="mt-2 text-xs sm:text-sm w-full shrink-0 h-8 sm:h-10" type="button" disabled={loading}>
+            <Cloud className="h-4 w-4 mr-2" />
+            Import from Google Drive
+          </Button>
           {files.length > 0 && (
             <div className="mt-2 flex flex-col gap-1 overflow-auto max-h-[80px]">
               {files.map((f, i) => (
