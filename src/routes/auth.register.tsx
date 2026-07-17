@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,12 +14,19 @@ export const Route = createFileRoute("/auth/register")({
 });
 
 function RegisterPage() {
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate({ to: "/app/dashboard", replace: true });
+    }
+  }, [user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +66,16 @@ function RegisterPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+          <div className="relative">
+            <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Creating…" : "Create account"}
